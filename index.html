@@ -1,153 +1,541 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mon Drive Perso</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    h1 { color: #1a73e8; margin-top: 0; }
-    button { background: #1a73e8; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 8px; }
-    button:disabled { background: #ccc; cursor: not-allowed; }
-    .btn-danger { background: #dc3545; }
-    .upload-section { margin: 20px 0; padding: 15px; border: 2px dashed #1a73e8; border-radius: 8px; text-align: center; }
-    ul { list-style: none; padding: 0; }
-    li { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-    li a { color: #1a73e8; text-decoration: none; font-weight: 500; word-break: break-all; }
-    #status { margin: 15px 0; font-weight: 500; color: #555; }
-  </style>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudDrive</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Identity Services JS Library -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            950: '#070a12',
+                            900: '#0b0f19',
+                            850: '#0f1626',
+                            800: '#111827',
+                            700: '#1e293b',
+                            600: '#334155'
+                        },
+                        brand: {
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom sleek scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-navy-900 text-slate-200 h-full flex flex-col font-sans antialiased overflow-hidden select-none">
 
-<div class="container">
-  <h1>📁 Mon Drive Cloud</h1>
-  
-  <div id="auth-box">
-    <button id="login-btn" onclick="login()">Se connecter à Google Drive</button>
-    <button id="logout-btn" onclick="logout()" style="display:none;" class="btn-danger">Déconnexion</button>
-  </div>
+    <header class="h-16 bg-navy-950 border-b border-slate-800/60 px-6 flex items-center justify-between shrink-0 z-10">
+        <!-- Brand Logo -->
+        <div class="flex items-center space-x-3 w-60">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-cloud text-white text-xl"></i>
+            </div>
+            <span class="text-xl font-bold text-white tracking-wide">CloudDrive</span>
+        </div>
 
-  <div id="status">Veuillez vous connecter.</div>
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-2xl mx-6">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </span>
+                <input type="text" id="searchInput" oninput="filterFiles()" 
+                    placeholder="Rechercher des fichiers ou dossiers..." 
+                    class="w-full pl-10 pr-4 py-2 bg-navy-850/80 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/80 focus:ring-1 focus:ring-blue-500/80 transition-all">
+            </div>
+        </div>
 
-  <div id="app-content" style="display:none;">
-    <div class="upload-section">
-      <input type="file" id="file-input">
-      <button onclick="uploadFile()">Envoyer sur Drive</button>
+        <!-- Auth & Status Badge -->
+        <div class="flex items-center space-x-4">
+            <div id="statusBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="statusText">Mode Local</span>
+            </div>
+            <button id="authBtn" onclick="handleAuthClick()" class="px-4 py-2 text-xs font-semibold rounded-xl text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center">
+                <i class="fa-brands fa-google mr-2 text-amber-400"></i> Connexion Google
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <aside class="w-64 bg-navy-950 border-r border-slate-800/60 p-4 flex flex-col justify-between shrink-0">
+            <div class="space-y-3">
+                <!-- Action Buttons -->
+                <button onclick="triggerFileInput()" class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-blue-600/25 transition duration-200 flex items-center justify-center space-x-2 text-sm active:scale-95">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Importer un fichier</span>
+                </button>
+                <input type="file" id="fileInput" class="hidden" multiple onchange="handleFileSelect(event)">
+
+                <button onclick="promptCreateFolder()" class="w-full py-2.5 px-4 bg-navy-850 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl font-medium transition duration-200 flex items-center justify-center space-x-2 text-sm active:scale-95">
+                    <i class="fa-solid fa-folder-plus text-amber-400"></i>
+                    <span>Nouveau dossier</span>
+                </button>
+
+                <!-- Navigation Sidebar Links -->
+                <nav class="pt-4 space-y-1">
+                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 font-medium text-sm">
+                        <i class="fa-solid fa-hard-drive"></i>
+                        <span>Mon Drive</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Storage Quota Widget -->
+            <div class="p-4 bg-navy-850/60 border border-slate-800/80 rounded-2xl space-y-3">
+                <div class="flex justify-between items-center text-xs text-slate-400">
+                    <span class="font-semibold tracking-wider uppercase text-[10px]">ESPACE DE STOCKAGE</span>
+                    <i class="fa-solid fa-database text-slate-500"></i>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                    <div id="storageBar" class="bg-blue-500 h-full rounded-full w-[0%] transition-all duration-500"></div>
+                </div>
+                <div class="text-xs text-slate-400 flex justify-between">
+                    <span id="storageUsedText">0 Mo utilisé</span>
+                    <span id="storageTotalText">15 Go</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-navy-900 flex flex-col min-w-0 overflow-hidden relative" 
+              id="dropZone" 
+              ondragover="handleDragOver(event)" 
+              ondragleave="handleDragLeave(event)" 
+              ondrop="handleDrop(event)">
+            
+            <!-- Drag & Drop Visual Overlay -->
+            <div id="dropOverlay" class="absolute inset-0 bg-blue-600/10 backdrop-blur-sm border-2 border-dashed border-blue-500 z-50 rounded-2xl m-4 flex flex-col items-center justify-center space-y-3 pointer-events-none opacity-0 transition-opacity duration-200">
+                <i class="fa-solid fa-cloud-arrow-up text-5xl text-blue-400 animate-bounce"></i>
+                <p class="text-blue-200 font-semibold text-lg">Déposez vos fichiers ici</p>
+            </div>
+
+            <!-- Content Action Bar -->
+            <div class="h-14 px-8 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-navy-900/50">
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-slate-100 font-bold text-lg">Mon Drive</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="itemCounter" class="text-xs text-slate-500 font-medium">0 élément(s)</span>
+                    <div class="flex items-center bg-navy-850 border border-slate-800 rounded-lg p-1 space-x-1">
+                        <button onclick="setViewMode('grid')" id="gridBtn" class="p-1.5 text-blue-400 rounded bg-slate-800 text-xs transition">
+                            <i class="fa-solid fa-border-all"></i>
+                        </button>
+                        <button onclick="setViewMode('list')" id="listBtn" class="p-1.5 text-slate-400 rounded hover:bg-slate-800 text-xs transition">
+                            <i class="fa-solid fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="filesContainer" class="flex-1 p-8 overflow-y-auto">
+                
+                <!-- Empty State -->
+                <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center space-y-4 py-16">
+                    <div class="w-24 h-24 rounded-3xl bg-navy-850 border border-slate-800/80 flex items-center justify-center text-slate-600 shadow-inner">
+                        <i class="fa-solid fa-folder-open text-5xl text-slate-700"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-slate-300 font-semibold text-lg">Ce dossier est vide</h3>
+                        <p class="text-slate-500 text-sm">Glissez-déposez des fichiers pour commencer</p>
+                    </div>
+                </div>
+
+                <!-- File Grid / List Container -->
+                <div id="fileList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 hidden">
+                    <!-- Dynamic File Cards will be injected here -->
+                </div>
+            </div>
+        </main>
     </div>
 
-    <h3>Mes fichiers</h3>
-    <button onclick="listFiles()">🔄 Rafraîchir la liste</button>
-    <ul id="file-list"></ul>
-  </div>
-</div>
+    <script>
+        // CONFIGURATION Google API (Placer votre CLIENT_ID Google Cloud Console ici)
+        const CLIENT_ID = '556364672735-22kr42sc1qt3m5rn5cr3tihch6d6p48o.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-<script>
-  // ⚠️ Remplacez par vos propres identifiants Google Cloud
-  const CLIENT_ID = '556364672735-22kr42sc1qt3m5rn5cr3tihch6d6p48o.apps.googleusercontent.com';
-  const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+        let tokenClient = null;
+        let accessToken = null;
+        let items = [];
+        let viewMode = 'grid';
 
-  let tokenClient;
-  let accessToken = localStorage.getItem('drive_access_token');
+        window.onload = () => {
+            initGoogleDrive();
+            renderItems();
+        };
 
-  window.onload = function() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPE,
-      callback: (response) => {
-        if (response.access_token) {
-          accessToken = response.access_token;
-          localStorage.setItem('drive_access_token', accessToken);
-          showApp();
-          listFiles();
+        function initGoogleDrive() {
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: (response) => {
+                        if (response.access_token) {
+                            accessToken = response.access_token;
+                            updateAuthStatus(true);
+                            fetchDriveFiles();
+                            fetchStorageQuota();
+                        }
+                    },
+                });
+            }
         }
-      },
-    });
 
-    if (accessToken) {
-      showApp();
-      listFiles();
-    }
-  };
+        function handleAuthClick() {
+            if (accessToken) {
+                accessToken = null;
+                updateAuthStatus(false);
+                items = [];
+                renderItems();
+            } else if (tokenClient && CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+            } else {
+                console.warn("Client ID non configuré. Utilisation du mode local interactif.");
+                updateAuthStatus(false);
+            }
+        }
 
-  function login() {
-    tokenClient.requestAccessToken({ prompt: '' });
-  }
+        function updateAuthStatus(isConnected) {
+            const badge = document.getElementById('statusBadge');
+            const text = document.getElementById('statusText');
+            const btn = document.getElementById('authBtn');
 
-  function logout() {
-    localStorage.removeItem('drive_access_token');
-    accessToken = null;
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('login-btn').style.display = 'inline-block';
-    document.getElementById('logout-btn').style.display = 'none';
-    document.getElementById('status').innerText = 'Déconnecté.';
-  }
+            if (isConnected) {
+                badge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium";
+                text.innerText = "• Connecté à Google Drive";
+                btn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-2"></i> Déconnexion';
+            } else {
+                badge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium";
+                text.innerText = "• Mode Local";
+                btn.innerHTML = '<i class="fa-brands fa-google mr-2 text-amber-400"></i> Connexion Google';
+            }
+        }
 
-  function showApp() {
-    document.getElementById('app-content').style.display = 'block';
-    document.getElementById('login-btn').style.display = 'none';
-    document.getElementById('logout-btn').style.display = 'inline-block';
-    document.getElementById('status').innerText = 'Connecté !';
-  }
+        function triggerFileInput() {
+            document.getElementById('fileInput').click();
+        }
 
-  async function uploadFile() {
-    const input = document.getElementById('file-input');
-    const file = input.files[0];
-    if (!file) return alert('Choisissez un fichier !');
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            processUploads(files);
+        }
 
-    document.getElementById('status').innerText = 'Envoi en cours...';
+        function handleDragOver(event) {
+            event.preventDefault();
+            document.getElementById('dropOverlay').classList.remove('opacity-0');
+        }
 
-    const metadata = { name: file.name, mimeType: file.type };
-    const formData = new FormData();
-    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    formData.append('file', file);
+        function handleDragLeave(event) {
+            event.preventDefault();
+            document.getElementById('dropOverlay').classList.add('opacity-0');
+        }
 
-    try {
-      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + accessToken },
-        body: formData
-      });
-      if (res.ok) {
-        document.getElementById('status').innerText = 'Fichier envoyé !';
-        input.value = '';
-        listFiles();
-      } else {
-        document.getElementById('status').innerText = 'Erreur lors de l\'envoi (session expirée ? reconnectez-vous).';
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
+        function handleDrop(event) {
+            event.preventDefault();
+            document.getElementById('dropOverlay').classList.add('opacity-0');
+            if (event.dataTransfer.files.length > 0) {
+                processUploads(Array.from(event.dataTransfer.files));
+            }
+        }
 
-  async function listFiles() {
-    document.getElementById('status').innerText = 'Chargement des fichiers...';
-    try {
-      const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=files(id,name,webViewLink,mimeType)', {
-        headers: { 'Authorization': 'Bearer ' + accessToken }
-      });
-      const data = await res.json();
-      
-      const list = document.getElementById('file-list');
-      list.innerHTML = '';
-      if (data.files && data.files.length > 0) {
-        data.files.forEach(file => {
-          const li = document.createElement('li');
-          li.innerHTML = `<a href="${file.webViewLink}" target="_blank">📄 ${file.name}</a>`;
-          list.appendChild(li);
-        });
-        document.getElementById('status').innerText = 'Fichiers synchronisés.';
-      } else {
-        document.getElementById('status').innerText = 'Aucun fichier trouvé.';
-      }
-    } catch (e) {
-      console.error(e);
-      document.getElementById('status').innerText = 'Erreur de chargement.';
-    }
-  }
-</script>
+        function processUploads(files) {
+            files.forEach(file => {
+                if (accessToken) {
+                    uploadToGoogleDrive(file);
+                } else {
+                    // Local Storage Mode Simulation
+                    const localItem = {
+                        id: 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        name: file.name,
+                        size: file.size,
+                        type: file.type || 'unknown',
+                        isFolder: false,
+                        date: new Date().toLocaleDateString('fr-FR')
+                    };
+                    items.push(localItem);
+                    renderItems();
+                }
+            });
+        }
 
+        function promptCreateFolder() {
+            const name = prompt("Nom du nouveau dossier :", "Nouveau dossier");
+            if (name) {
+                if (accessToken) {
+                    createGoogleDriveFolder(name);
+                } else {
+                    const folderItem = {
+                        id: 'local_dir_' + Date.now(),
+                        name: name,
+                        size: 0,
+                        type: 'folder',
+                        isFolder: true,
+                        date: new Date().toLocaleDateString('fr-FR')
+                    };
+                    items.push(folderItem);
+                    renderItems();
+                }
+            }
+        }
+
+        async function createGoogleDriveFolder(name) {
+            const metadata = {
+                name: name,
+                mimeType: 'application/vnd.google-apps.folder'
+            };
+            try {
+                await fetch('https://www.googleapis.com/drive/v3/files', {
+                    method: 'POST',
+                    headers: new Headers({
+                        'Authorization': 'Bearer ' + accessToken,
+                        'Content-Type': 'application/json'
+                    }),
+                    body: JSON.stringify(metadata)
+                });
+                fetchDriveFiles();
+            } catch (err) {
+                console.error("Erreur lors de la création du dossier :", err);
+            }
+        }
+
+        async function uploadToGoogleDrive(file) {
+            const metadata = { name: file.name, mimeType: file.type };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', file);
+
+            try {
+                const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: 'POST',
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                    body: form
+                });
+                const data = await res.json();
+                if (data.id) {
+                    fetchDriveFiles();
+                    fetchStorageQuota();
+                }
+            } catch (err) {
+                console.error("Erreur d'envoi vers Google Drive :", err);
+            }
+        }
+
+        async function fetchDriveFiles() {
+            if (!accessToken) return;
+            try {
+                const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=files(id,name,mimeType,size,createdTime,webContentLink)&q=trashed=false', {
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken })
+                });
+                const data = await res.json();
+                if (data.files) {
+                    items = data.files.map(f => ({
+                        id: f.id,
+                        name: f.name,
+                        size: parseInt(f.size || 0),
+                        type: f.mimeType,
+                        isFolder: f.mimeType === 'application/vnd.google-apps.folder',
+                        date: new Date(f.createdTime || Date.now()).toLocaleDateString('fr-FR'),
+                        downloadLink: f.webContentLink || null
+                    }));
+                    renderItems();
+                }
+            } catch (err) {
+                console.error("Erreur de lecture Google Drive :", err);
+            }
+        }
+
+        async function fetchStorageQuota() {
+            if (!accessToken) return;
+            try {
+                const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken })
+                });
+                const data = await res.json();
+                if (data.storageQuota) {
+                    const usage = parseInt(data.storageQuota.usage || 0);
+                    const limit = parseInt(data.storageQuota.limit || 16106127360); // Default 15 GB
+                    const percent = Math.min(100, Math.round((usage / limit) * 100));
+                    
+                    document.getElementById('storageBar').style.width = `${percent}%`;
+                    document.getElementById('storageUsedText').innerText = formatBytes(usage) + ' utilisé';
+                    document.getElementById('storageTotalText').innerText = formatBytes(limit);
+                }
+            } catch (err) {
+                console.error("Erreur lors de la récupération du stockage :", err);
+            }
+        }
+
+        async function deleteItem(id, event) {
+            event.stopPropagation();
+            if (accessToken && !id.startsWith('local_')) {
+                try {
+                    await fetch(`https://www.googleapis.com/drive/v3/files/${id}`, {
+                        method: 'DELETE',
+                        headers: new Headers({ 'Authorization': 'Bearer ' + accessToken })
+                    });
+                    fetchDriveFiles();
+                    fetchStorageQuota();
+                } catch (err) {
+                    console.error("Erreur de suppression :", err);
+                }
+            } else {
+                items = items.filter(i => i.id !== id);
+                renderItems();
+            }
+        }
+
+        function renderItems(filterQuery = '') {
+            const emptyState = document.getElementById('emptyState');
+            const fileList = document.getElementById('fileList');
+            const itemCounter = document.getElementById('itemCounter');
+
+            const filteredItems = items.filter(item => item.name.toLowerCase().includes(filterQuery.toLowerCase()));
+
+            itemCounter.innerText = `${filteredItems.length} élément(s)`;
+            updateStorageMetrics();
+
+            if (filteredItems.length === 0) {
+                emptyState.classList.remove('hidden');
+                fileList.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            fileList.classList.remove('hidden');
+
+            fileList.innerHTML = '';
+
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                
+                if (viewMode === 'grid') {
+                    card.className = "group relative bg-navy-850 hover:bg-slate-800 border border-slate-800/80 hover:border-blue-500/50 rounded-2xl p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between";
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 rounded-xl ${getItemBg(item)} flex items-center justify-center">
+                                ${getItemIcon(item)}
+                            </div>
+                            <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition">
+                                ${item.downloadLink ? `
+                                    <a href="${item.downloadLink}" target="_blank" class="p-1.5 text-slate-400 hover:text-blue-400 transition">
+                                        <i class="fa-solid fa-download text-xs"></i>
+                                    </a>
+                                ` : ''}
+                                <button onclick="deleteItem('${item.id}', event)" class="p-1.5 text-slate-400 hover:text-red-400 transition">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-semibold text-slate-200 truncate" title="${item.name}">${item.name}</h4>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>${item.isFolder ? 'Dossier' : formatBytes(item.size)}</span>
+                                <span>${item.date}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    card.className = "group relative bg-navy-850 hover:bg-slate-800 border border-slate-800/80 rounded-xl px-4 py-3 transition-all flex items-center justify-between col-span-full";
+                    card.innerHTML = `
+                        <div class="flex items-center space-x-3 truncate">
+                            <div class="w-8 h-8 rounded-lg ${getItemBg(item)} flex items-center justify-center shrink-0">
+                                ${getItemIcon(item)}
+                            </div>
+                            <span class="text-sm font-medium text-slate-200 truncate">${item.name}</span>
+                        </div>
+                        <div class="flex items-center space-x-6 text-xs text-slate-500">
+                            <span>${item.date}</span>
+                            <span class="w-16 text-right">${item.isFolder ? '--' : formatBytes(item.size)}</span>
+                            <button onclick="deleteItem('${item.id}', event)" class="p-1 text-slate-500 hover:text-red-400 transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+                fileList.appendChild(card);
+            });
+        }
+
+        function getItemIcon(item) {
+            if (item.isFolder) return '<i class="fa-solid fa-folder text-amber-400 text-lg"></i>';
+            if (item.type.includes('image')) return '<i class="fa-solid fa-image text-emerald-400 text-lg"></i>';
+            if (item.type.includes('pdf')) return '<i class="fa-solid fa-file-pdf text-rose-400 text-lg"></i>';
+            return '<i class="fa-solid fa-file text-blue-400 text-lg"></i>';
+        }
+
+        function getItemBg(item) {
+            if (item.isFolder) return 'bg-amber-400/10';
+            if (item.type.includes('image')) return 'bg-emerald-400/10';
+            if (item.type.includes('pdf')) return 'bg-rose-400/10';
+            return 'bg-blue-400/10';
+        }
+
+        function filterFiles() {
+            const query = document.getElementById('searchInput').value;
+            renderItems(query);
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.getElementById('gridBtn').className = mode === 'grid' ? 'p-1.5 text-blue-400 rounded bg-slate-800 text-xs' : 'p-1.5 text-slate-400 rounded hover:bg-slate-800 text-xs';
+            document.getElementById('listBtn').className = mode === 'list' ? 'p-1.5 text-blue-400 rounded bg-slate-800 text-xs' : 'p-1.5 text-slate-400 rounded hover:bg-slate-800 text-xs';
+            
+            const fileList = document.getElementById('fileList');
+            if (mode === 'list') {
+                fileList.className = "flex flex-col space-y-2";
+            } else {
+                fileList.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4";
+            }
+            renderItems();
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 Octet';
+            const k = 1024;
+            const sizes = ['Octets', 'Ko', 'Mo', 'Go'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function updateStorageMetrics() {
+            if (!accessToken) {
+                const totalBytes = items.reduce((acc, curr) => acc + (curr.size || 0), 0);
+                const formatted = formatBytes(totalBytes);
+                document.getElementById('storageUsedText').innerText = `${formatted} utilisé`;
+                const simulatedPercent = Math.min(100, Math.round((totalBytes / (15 * 1024 * 1024 * 1024)) * 100));
+                document.getElementById('storageBar').style.width = `${simulatedPercent}%`;
+            }
+        }
+    </script>
 </body>
 </html>
