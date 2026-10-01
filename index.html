@@ -1,540 +1,1000 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudDrive</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Identity Services JS Library -->
+    <title>CloudDrive - Votre Stockage Personnel</title>
+    
+    <!-- Lucide Icons & Fonts -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Identity Services Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        navy: {
-                            950: '#070a12',
-                            900: '#0b0f19',
-                            850: '#0f1626',
-                            800: '#111827',
-                            700: '#1e293b',
-                            600: '#334155'
-                        },
-                        brand: {
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        /* Custom sleek scrollbar for webkit browsers */
-        ::-webkit-scrollbar {
-            width: 6px;
+        :root {
+            --bg-main: #0a0e1a;
+            --bg-sidebar: #10172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #1e293b;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ----- ÉCRAN DE CONNEXION OBLIGATOIRE ----- */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-main);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-logo {
+            width: 70px;
+            height: 70px;
+            background: var(--accent-blue);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .login-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .login-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .btn-google-login {
+            width: 100%;
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-google-login:hover {
+            background: var(--accent-blue-hover);
+            transform: translateY(-1px);
+        }
+
+        /* ----- APPLICATION PRINCIPALE ----- */
+        #app-header {
+            height: 64px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: var(--bg-main);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .header-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 16px 10px 44px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-logout {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .app-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background: var(--bg-card);
+            color: var(--accent-blue);
+        }
+
+        .storage-widget {
+            margin-top: auto;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .storage-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .storage-bar {
             height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
         }
-        ::-webkit-scrollbar-track {
-            background: #0b0f19;
+
+        .storage-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-blue);
+            transition: width 0.4s ease;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 4px;
+
+        .storage-text {
+            font-size: 12px;
+            color: var(--text-muted);
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #334155;
+
+        /* Contenu principal */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--text-main);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-main);
+        }
+
+        /* Drop Zone & File List */
+        .drop-zone {
+            flex: 1;
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            transition: all 0.2s;
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .file-card {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .file-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            background: var(--bg-card);
+        }
+
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-icon.delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Modale */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-card {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--accent-blue);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 3000;
         }
     </style>
 </head>
-<body class="bg-navy-900 text-slate-200 h-full flex flex-col font-sans antialiased overflow-hidden select-none">
+<body>
 
-    <header class="h-16 bg-navy-950 border-b border-slate-800/60 px-6 flex items-center justify-between shrink-0 z-10">
-        <!-- Brand Logo -->
-        <div class="flex items-center space-x-3 w-60">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <i class="fa-solid fa-cloud text-white text-xl"></i>
+    <!-- ÉCRAN DE CONNEXION OBLIGATOIRE -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="login-logo">
+                <i data-lucide="cloud" size="36" color="#ffffff"></i>
             </div>
-            <span class="text-xl font-bold text-white tracking-wide">CloudDrive</span>
+            <h1 class="login-title">CloudDrive</h1>
+            <p class="login-subtitle">Connectez-vous avec votre compte Google pour accéder à votre espace de stockage sécurisé.</p>
+            <button class="btn-google-login" id="login-btn">
+                <i data-lucide="log-in" size="20"></i>
+                Se connecter avec Google
+            </button>
+        </div>
+    </div>
+
+    <!-- APPLICATION PRINCIPALE -->
+    <header id="app-header">
+        <div class="header-brand">
+            <div class="header-brand-icon">
+                <i data-lucide="cloud" size="20" color="#ffffff"></i>
+            </div>
+            CloudDrive
         </div>
 
-        <!-- Search Bar -->
-        <div class="flex-1 max-w-2xl mx-6">
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
-                </span>
-                <input type="text" id="searchInput" oninput="filterFiles()" 
-                    placeholder="Rechercher des fichiers ou dossiers..." 
-                    class="w-full pl-10 pr-4 py-2 bg-navy-850/80 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/80 focus:ring-1 focus:ring-blue-500/80 transition-all">
-            </div>
+        <div class="search-container">
+            <i data-lucide="search" size="18"></i>
+            <input type="text" class="search-input" id="search-input" placeholder="Rechercher des fichiers ou dossiers...">
         </div>
 
-        <!-- Auth & Status Badge -->
-        <div class="flex items-center space-x-4">
-            <div id="statusBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="statusText">Mode Local</span>
-            </div>
-            <button id="authBtn" onclick="handleAuthClick()" class="px-4 py-2 text-xs font-semibold rounded-xl text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center">
-                <i class="fa-brands fa-google mr-2 text-amber-400"></i> Connexion Google
+        <div class="user-profile">
+            <button class="btn-logout" id="logout-btn">
+                <i data-lucide="log-out" size="16"></i>
+                Déconnexion
             </button>
         </div>
     </header>
 
-    <div class="flex flex-1 overflow-hidden">
-        
-        <aside class="w-64 bg-navy-950 border-r border-slate-800/60 p-4 flex flex-col justify-between shrink-0">
-            <div class="space-y-3">
-                <!-- Action Buttons -->
-                <button onclick="triggerFileInput()" class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-blue-600/25 transition duration-200 flex items-center justify-center space-x-2 text-sm active:scale-95">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Importer un fichier</span>
+    <div class="app-body">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="action-buttons">
+                <button class="btn-primary" id="upload-file-btn">
+                    <i data-lucide="upload" size="18"></i>
+                    Importer un fichier
                 </button>
-                <input type="file" id="fileInput" class="hidden" multiple onchange="handleFileSelect(event)">
+                <input type="file" id="hidden-file-input" style="display: none;" multiple>
 
-                <button onclick="promptCreateFolder()" class="w-full py-2.5 px-4 bg-navy-850 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl font-medium transition duration-200 flex items-center justify-center space-x-2 text-sm active:scale-95">
-                    <i class="fa-solid fa-folder-plus text-amber-400"></i>
-                    <span>Nouveau dossier</span>
+                <button class="btn-secondary" id="new-folder-btn">
+                    <i data-lucide="folder-plus" size="18"></i>
+                    Nouveau dossier
                 </button>
-
-                <!-- Navigation Sidebar Links -->
-                <nav class="pt-4 space-y-1">
-                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 font-medium text-sm">
-                        <i class="fa-solid fa-hard-drive"></i>
-                        <span>Mon Drive</span>
-                    </a>
-                </nav>
             </div>
 
-            <!-- Storage Quota Widget -->
-            <div class="p-4 bg-navy-850/60 border border-slate-800/80 rounded-2xl space-y-3">
-                <div class="flex justify-between items-center text-xs text-slate-400">
-                    <span class="font-semibold tracking-wider uppercase text-[10px]">ESPACE DE STOCKAGE</span>
-                    <i class="fa-solid fa-database text-slate-500"></i>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item active">
+                    <i data-lucide="hard-drive" size="18"></i>
+                    Mon Drive
+                </li>
+            </ul>
+
+            <div class="storage-widget">
+                <div class="storage-title">Espace de stockage</div>
+                <div class="storage-bar">
+                    <div class="storage-fill" id="storage-fill"></div>
                 </div>
-                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                    <div id="storageBar" class="bg-blue-500 h-full rounded-full w-[0%] transition-all duration-500"></div>
-                </div>
-                <div class="text-xs text-slate-400 flex justify-between">
-                    <span id="storageUsedText">0 Mo utilisé</span>
-                    <span id="storageTotalText">15 Go</span>
-                </div>
+                <div class="storage-text" id="storage-text">Calcul en cours...</div>
             </div>
         </aside>
 
-        <main class="flex-1 bg-navy-900 flex flex-col min-w-0 overflow-hidden relative" 
-              id="dropZone" 
-              ondragover="handleDragOver(event)" 
-              ondragleave="handleDragLeave(event)" 
-              ondrop="handleDrop(event)">
-            
-            <!-- Drag & Drop Visual Overlay -->
-            <div id="dropOverlay" class="absolute inset-0 bg-blue-600/10 backdrop-blur-sm border-2 border-dashed border-blue-500 z-50 rounded-2xl m-4 flex flex-col items-center justify-center space-y-3 pointer-events-none opacity-0 transition-opacity duration-200">
-                <i class="fa-solid fa-cloud-arrow-up text-5xl text-blue-400 animate-bounce"></i>
-                <p class="text-blue-200 font-semibold text-lg">Déposez vos fichiers ici</p>
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <div class="breadcrumb" id="breadcrumb">
+                <span class="breadcrumb-item active" onclick="navigateToFolder('root', 'Mon Drive')">Mon Drive</span>
             </div>
 
-            <!-- Content Action Bar -->
-            <div class="h-14 px-8 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-navy-900/50">
-                <div class="flex items-center space-x-3">
-                    <h1 class="text-slate-100 font-bold text-lg">Mon Drive</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span id="itemCounter" class="text-xs text-slate-500 font-medium">0 élément(s)</span>
-                    <div class="flex items-center bg-navy-850 border border-slate-800 rounded-lg p-1 space-x-1">
-                        <button onclick="setViewMode('grid')" id="gridBtn" class="p-1.5 text-blue-400 rounded bg-slate-800 text-xs transition">
-                            <i class="fa-solid fa-border-all"></i>
-                        </button>
-                        <button onclick="setViewMode('list')" id="listBtn" class="p-1.5 text-slate-400 rounded hover:bg-slate-800 text-xs transition">
-                            <i class="fa-solid fa-list"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="filesContainer" class="flex-1 p-8 overflow-y-auto">
-                
-                <!-- Empty State -->
-                <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center space-y-4 py-16">
-                    <div class="w-24 h-24 rounded-3xl bg-navy-850 border border-slate-800/80 flex items-center justify-center text-slate-600 shadow-inner">
-                        <i class="fa-solid fa-folder-open text-5xl text-slate-700"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="text-slate-300 font-semibold text-lg">Ce dossier est vide</h3>
-                        <p class="text-slate-500 text-sm">Glissez-déposez des fichiers pour commencer</p>
-                    </div>
+            <div class="drop-zone" id="drop-zone">
+                <div id="loading-state" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                    <div class="spinner"></div>
+                    <span style="color: var(--text-muted); font-size: 14px;">Chargement des fichiers...</span>
                 </div>
 
-                <!-- File Grid / List Container -->
-                <div id="fileList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 hidden">
-                    <!-- Dynamic File Cards will be injected here -->
+                <div id="empty-state" style="display: none; text-align: center;">
+                    <i data-lucide="folder-open" size="64" color="#334155" style="margin-bottom: 16px;"></i>
+                    <h3 style="font-size: 16px; margin-bottom: 6px;">Ce dossier est vide</h3>
+                    <p style="color: var(--text-muted); font-size: 13px;">Glissez-déposez des fichiers ici ou utilisez le bouton Importer</p>
                 </div>
+
+                <div class="files-grid" id="files-grid" style="display: none;"></div>
             </div>
         </main>
     </div>
 
+    <!-- MODALE CREATION DOSSIER -->
+    <div class="modal-overlay" id="folder-modal">
+        <div class="modal-card">
+            <h3 class="modal-title">Nouveau dossier</h3>
+            <input type="text" class="modal-input" id="folder-name-input" placeholder="Nom du dossier">
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancel-folder-btn">Annuler</button>
+                <button class="btn-primary" id="confirm-folder-btn">Créer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast">
+        <i data-lucide="check-circle" size="18" color="#10b981"></i>
+        <span id="toast-message">Notification</span>
+    </div>
+
     <script>
-        // CONFIGURATION Google API (Placer votre CLIENT_ID Google Cloud Console ici)
-        const CLIENT_ID = '556364672735-22kr42sc1qt3m5rn5cr3tihch6d6p48o.apps.googleusercontent.com';
+        // CONFIGURATION OAUTH GOOGLE
+        const CLIENT_ID = '556364672735-22kr42sc1qt3m5rn5cr3tihch6d6p48o.apps.googleusercontent.com'; // Remplacez si besoin
         const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-        let tokenClient = null;
+        let tokenClient;
         let accessToken = null;
-        let items = [];
-        let viewMode = 'grid';
+        let currentFolderId = 'root';
+        let folderHistory = [{ id: 'root', name: 'Mon Drive' }];
+        let allFiles = [];
 
+        // Initialisation Lucide Icons
+        lucide.createIcons();
+
+        // Initialisation Google Identity Services
         window.onload = () => {
-            initGoogleDrive();
-            renderItems();
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: (tokenResponse) => {
+                    if (tokenResponse.access_token) {
+                        accessToken = tokenResponse.access_token;
+                        document.getElementById('login-screen').style.display = 'none';
+                        showToast('Connexion réussie !');
+                        loadDriveContent();
+                        loadStorageInfo();
+                    }
+                },
+            });
+
+            // Restaurer la session si le jeton existe encore (optionnel)
+            document.getElementById('login-btn').addEventListener('click', () => {
+                tokenClient.requestAccessToken();
+            });
         };
 
-        function initGoogleDrive() {
-            if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: (response) => {
-                        if (response.access_token) {
-                            accessToken = response.access_token;
-                            updateAuthStatus(true);
-                            fetchDriveFiles();
-                            fetchStorageQuota();
-                        }
-                    },
-                });
-            }
-        }
-
-        function handleAuthClick() {
+        // Déconnexion
+        document.getElementById('logout-btn').addEventListener('click', () => {
             if (accessToken) {
-                accessToken = null;
-                updateAuthStatus(false);
-                items = [];
-                renderItems();
-            } else if (tokenClient && CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-                console.warn("Client ID non configuré. Utilisation du mode local interactif.");
-                updateAuthStatus(false);
-            }
-        }
-
-        function updateAuthStatus(isConnected) {
-            const badge = document.getElementById('statusBadge');
-            const text = document.getElementById('statusText');
-            const btn = document.getElementById('authBtn');
-
-            if (isConnected) {
-                badge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium";
-                text.innerText = "• Connecté à Google Drive";
-                btn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-2"></i> Déconnexion';
-            } else {
-                badge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium";
-                text.innerText = "• Mode Local";
-                btn.innerHTML = '<i class="fa-brands fa-google mr-2 text-amber-400"></i> Connexion Google';
-            }
-        }
-
-        function triggerFileInput() {
-            document.getElementById('fileInput').click();
-        }
-
-        function handleFileSelect(event) {
-            const files = Array.from(event.target.files);
-            processUploads(files);
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-            document.getElementById('dropOverlay').classList.remove('opacity-0');
-        }
-
-        function handleDragLeave(event) {
-            event.preventDefault();
-            document.getElementById('dropOverlay').classList.add('opacity-0');
-        }
-
-        function handleDrop(event) {
-            event.preventDefault();
-            document.getElementById('dropOverlay').classList.add('opacity-0');
-            if (event.dataTransfer.files.length > 0) {
-                processUploads(Array.from(event.dataTransfer.files));
-            }
-        }
-
-        function processUploads(files) {
-            files.forEach(file => {
-                if (accessToken) {
-                    uploadToGoogleDrive(file);
-                } else {
-                    // Local Storage Mode Simulation
-                    const localItem = {
-                        id: 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                        name: file.name,
-                        size: file.size,
-                        type: file.type || 'unknown',
-                        isFolder: false,
-                        date: new Date().toLocaleDateString('fr-FR')
-                    };
-                    items.push(localItem);
-                    renderItems();
-                }
-            });
-        }
-
-        function promptCreateFolder() {
-            const name = prompt("Nom du nouveau dossier :", "Nouveau dossier");
-            if (name) {
-                if (accessToken) {
-                    createGoogleDriveFolder(name);
-                } else {
-                    const folderItem = {
-                        id: 'local_dir_' + Date.now(),
-                        name: name,
-                        size: 0,
-                        type: 'folder',
-                        isFolder: true,
-                        date: new Date().toLocaleDateString('fr-FR')
-                    };
-                    items.push(folderItem);
-                    renderItems();
-                }
-            }
-        }
-
-        async function createGoogleDriveFolder(name) {
-            const metadata = {
-                name: name,
-                mimeType: 'application/vnd.google-apps.folder'
-            };
-            try {
-                await fetch('https://www.googleapis.com/drive/v3/files', {
-                    method: 'POST',
-                    headers: new Headers({
-                        'Authorization': 'Bearer ' + accessToken,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify(metadata)
+                google.accounts.oauth2.revoke(accessToken, () => {
+                    accessToken = null;
+                    document.getElementById('login-screen').style.display = 'flex';
+                    showToast('Déconnecté avec succès');
                 });
-                fetchDriveFiles();
-            } catch (err) {
-                console.error("Erreur lors de la création du dossier :", err);
             }
-        }
+        });
 
-        async function uploadToGoogleDrive(file) {
-            const metadata = { name: file.name, mimeType: file.type };
-            const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            form.append('file', file);
-
+        // CHARGER LES FICHIERS ET DOSSIERS DU DRIVE
+        async function loadDriveContent() {
+            showLoading(true);
             try {
-                const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: 'POST',
-                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-                    body: form
+                const query = `'${currentFolderId}' in parents and trashed = false`;
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id, name, mimeType, size, iconLink, webViewLink, webContentLink)&orderBy=folder,name`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
-                const data = await res.json();
-                if (data.id) {
-                    fetchDriveFiles();
-                    fetchStorageQuota();
-                }
+                const data = await response.json();
+                allFiles = data.files || [];
+                renderFiles(allFiles);
             } catch (err) {
-                console.error("Erreur d'envoi vers Google Drive :", err);
+                showToast('Erreur lors du chargement des fichiers');
+            } finally {
+                showLoading(false);
             }
         }
 
-        async function fetchDriveFiles() {
-            if (!accessToken) return;
-            try {
-                const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=files(id,name,mimeType,size,createdTime,webContentLink)&q=trashed=false', {
-                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken })
-                });
-                const data = await res.json();
-                if (data.files) {
-                    items = data.files.map(f => ({
-                        id: f.id,
-                        name: f.name,
-                        size: parseInt(f.size || 0),
-                        type: f.mimeType,
-                        isFolder: f.mimeType === 'application/vnd.google-apps.folder',
-                        date: new Date(f.createdTime || Date.now()).toLocaleDateString('fr-FR'),
-                        downloadLink: f.webContentLink || null
-                    }));
-                    renderItems();
-                }
-            } catch (err) {
-                console.error("Erreur de lecture Google Drive :", err);
-            }
-        }
+        // AFFICHER LES FICHIERS
+        function renderFiles(files) {
+            const grid = document.getElementById('files-grid');
+            const emptyState = document.getElementById('empty-state');
 
-        async function fetchStorageQuota() {
-            if (!accessToken) return;
-            try {
-                const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
-                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken })
-                });
-                const data = await res.json();
-                if (data.storageQuota) {
-                    const usage = parseInt(data.storageQuota.usage || 0);
-                    const limit = parseInt(data.storageQuota.limit || 16106127360); // Default 15 GB
-                    const percent = Math.min(100, Math.round((usage / limit) * 100));
-                    
-                    document.getElementById('storageBar').style.width = `${percent}%`;
-                    document.getElementById('storageUsedText').innerText = formatBytes(usage) + ' utilisé';
-                    document.getElementById('storageTotalText').innerText = formatBytes(limit);
-                }
-            } catch (err) {
-                console.error("Erreur lors de la récupération du stockage :", err);
-            }
-        }
+            grid.innerHTML = '';
 
-        async function deleteItem(id, event) {
-            event.stopPropagation();
-            if (accessToken && !id.startsWith('local_')) {
-                try {
-                    await fetch(`https://www.googleapis.com/drive/v3/files/${id}`, {
-                        method: 'DELETE',
-                        headers: new Headers({ 'Authorization': 'Bearer ' + accessToken })
-                    });
-                    fetchDriveFiles();
-                    fetchStorageQuota();
-                } catch (err) {
-                    console.error("Erreur de suppression :", err);
-                }
-            } else {
-                items = items.filter(i => i.id !== id);
-                renderItems();
-            }
-        }
-
-        function renderItems(filterQuery = '') {
-            const emptyState = document.getElementById('emptyState');
-            const fileList = document.getElementById('fileList');
-            const itemCounter = document.getElementById('itemCounter');
-
-            const filteredItems = items.filter(item => item.name.toLowerCase().includes(filterQuery.toLowerCase()));
-
-            itemCounter.innerText = `${filteredItems.length} élément(s)`;
-            updateStorageMetrics();
-
-            if (filteredItems.length === 0) {
-                emptyState.classList.remove('hidden');
-                fileList.classList.add('hidden');
+            if (files.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
                 return;
             }
 
-            emptyState.classList.add('hidden');
-            fileList.classList.remove('hidden');
+            emptyState.style.display = 'none';
+            grid.style.display = 'grid';
 
-            fileList.innerHTML = '';
-
-            filteredItems.forEach(item => {
+            files.forEach(file => {
+                const isFolder = file.mimeType === 'application/vnd.google-apps.folder';
                 const card = document.createElement('div');
-                
-                if (viewMode === 'grid') {
-                    card.className = "group relative bg-navy-850 hover:bg-slate-800 border border-slate-800/80 hover:border-blue-500/50 rounded-2xl p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between";
-                    card.innerHTML = `
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="w-10 h-10 rounded-xl ${getItemBg(item)} flex items-center justify-center">
-                                ${getItemIcon(item)}
-                            </div>
-                            <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition">
-                                ${item.downloadLink ? `
-                                    <a href="${item.downloadLink}" target="_blank" class="p-1.5 text-slate-400 hover:text-blue-400 transition">
-                                        <i class="fa-solid fa-download text-xs"></i>
-                                    </a>
-                                ` : ''}
-                                <button onclick="deleteItem('${item.id}', event)" class="p-1.5 text-slate-400 hover:text-red-400 transition">
-                                    <i class="fa-solid fa-trash-can text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <h4 class="text-sm font-semibold text-slate-200 truncate" title="${item.name}">${item.name}</h4>
-                            <div class="flex items-center justify-between text-[11px] text-slate-500">
-                                <span>${item.isFolder ? 'Dossier' : formatBytes(item.size)}</span>
-                                <span>${item.date}</span>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    card.className = "group relative bg-navy-850 hover:bg-slate-800 border border-slate-800/80 rounded-xl px-4 py-3 transition-all flex items-center justify-between col-span-full";
-                    card.innerHTML = `
-                        <div class="flex items-center space-x-3 truncate">
-                            <div class="w-8 h-8 rounded-lg ${getItemBg(item)} flex items-center justify-center shrink-0">
-                                ${getItemIcon(item)}
-                            </div>
-                            <span class="text-sm font-medium text-slate-200 truncate">${item.name}</span>
-                        </div>
-                        <div class="flex items-center space-x-6 text-xs text-slate-500">
-                            <span>${item.date}</span>
-                            <span class="w-16 text-right">${item.isFolder ? '--' : formatBytes(item.size)}</span>
-                            <button onclick="deleteItem('${item.id}', event)" class="p-1 text-slate-500 hover:text-red-400 transition">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    `;
+                card.className = 'file-card';
+
+                const iconName = isFolder ? 'folder' : getFileIcon(file.mimeType);
+
+                card.innerHTML = `
+                    <div class="file-icon">
+                        <i data-lucide="${iconName}" size="24"></i>
+                    </div>
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    <div class="file-meta">
+                        <span>${isFolder ? 'Dossier' : formatSize(file.size)}</span>
+                    </div>
+                    <div class="file-actions">
+                        ${!isFolder ? `<button class="btn-icon" title="Télécharger" onclick="event.stopPropagation(); downloadFile('${file.id}')"><i data-lucide="download" size="14"></i></button>` : ''}
+                        <button class="btn-icon" title="Partager par lien" onclick="event.stopPropagation(); shareFile('${file.id}')"><i data-lucide="share-2" size="14"></i></button>
+                        <button class="btn-icon delete" title="Supprimer" onclick="event.stopPropagation(); deleteFile('${file.id}')"><i data-lucide="trash-2" size="14"></i></button>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => {
+                    if (isFolder) {
+                        navigateToFolder(file.id, file.name);
+                    } else if (file.webViewLink) {
+                        window.open(file.webViewLink, '_blank');
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        // NAVIGATION DOSSIER & FIL D'ARIANE
+        function navigateToFolder(folderId, folderName) {
+            currentFolderId = folderId;
+
+            const index = folderHistory.findIndex(item => item.id === folderId);
+            if (index !== -1) {
+                folderHistory = folderHistory.slice(0, index + 1);
+            } else {
+                folderHistory.push({ id: folderId, name: folderName });
+            }
+
+            updateBreadcrumb();
+            loadDriveContent();
+        }
+
+        function updateBreadcrumb() {
+            const container = document.getElementById('breadcrumb');
+            container.innerHTML = '';
+
+            folderHistory.forEach((item, idx) => {
+                const isLast = idx === folderHistory.length - 1;
+                const span = document.createElement('span');
+                span.className = `breadcrumb-item ${isLast ? 'active' : ''}`;
+                span.innerText = item.name;
+                if (!isLast) {
+                    span.onclick = () => navigateToFolder(item.id, item.name);
                 }
-                fileList.appendChild(card);
+                container.appendChild(span);
+
+                if (!isLast) {
+                    const separator = document.createElement('span');
+                    separator.innerText = ' / ';
+                    separator.style.color = 'var(--text-muted)';
+                    container.appendChild(separator);
+                }
             });
         }
 
-        function getItemIcon(item) {
-            if (item.isFolder) return '<i class="fa-solid fa-folder text-amber-400 text-lg"></i>';
-            if (item.type.includes('image')) return '<i class="fa-solid fa-image text-emerald-400 text-lg"></i>';
-            if (item.type.includes('pdf')) return '<i class="fa-solid fa-file-pdf text-rose-400 text-lg"></i>';
-            return '<i class="fa-solid fa-file text-blue-400 text-lg"></i>';
-        }
+        // CREATION DE DOSSIER
+        const folderModal = document.getElementById('folder-modal');
+        document.getElementById('new-folder-btn').addEventListener('click', () => {
+            document.getElementById('folder-name-input').value = '';
+            folderModal.style.display = 'flex';
+        });
 
-        function getItemBg(item) {
-            if (item.isFolder) return 'bg-amber-400/10';
-            if (item.type.includes('image')) return 'bg-emerald-400/10';
-            if (item.type.includes('pdf')) return 'bg-rose-400/10';
-            return 'bg-blue-400/10';
-        }
+        document.getElementById('cancel-folder-btn').addEventListener('click', () => {
+            folderModal.style.display = 'none';
+        });
 
-        function filterFiles() {
-            const query = document.getElementById('searchInput').value;
-            renderItems(query);
-        }
+        document.getElementById('confirm-folder-btn').addEventListener('click', async () => {
+            const name = document.getElementById('folder-name-input').value.trim();
+            if (!name) return;
 
-        function setViewMode(mode) {
-            viewMode = mode;
-            document.getElementById('gridBtn').className = mode === 'grid' ? 'p-1.5 text-blue-400 rounded bg-slate-800 text-xs' : 'p-1.5 text-slate-400 rounded hover:bg-slate-800 text-xs';
-            document.getElementById('listBtn').className = mode === 'list' ? 'p-1.5 text-blue-400 rounded bg-slate-800 text-xs' : 'p-1.5 text-slate-400 rounded hover:bg-slate-800 text-xs';
-            
-            const fileList = document.getElementById('fileList');
-            if (mode === 'list') {
-                fileList.className = "flex flex-col space-y-2";
-            } else {
-                fileList.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4";
+            folderModal.style.display = 'none';
+            showToast('Création du dossier...');
+
+            try {
+                const metadata = {
+                    name: name,
+                    mimeType: 'application/vnd.google-apps.folder',
+                    parents: [currentFolderId]
+                };
+
+                await fetch('https://www.googleapis.com/drive/v3/files', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(metadata)
+                });
+
+                showToast('Dossier créé !');
+                loadDriveContent();
+            } catch (err) {
+                showToast('Erreur lors de la création');
             }
-            renderItems();
+        });
+
+        // IMPORTATION DE FICHIERS
+        const hiddenInput = document.getElementById('hidden-file-input');
+        document.getElementById('upload-file-btn').addEventListener('click', () => hiddenInput.click());
+
+        hiddenInput.addEventListener('change', (e) => uploadFiles(e.target.files));
+
+        async function uploadFiles(files) {
+            if (!files.length) return;
+
+            for (let file of files) {
+                showToast(`Importation de ${file.name}...`);
+                const metadata = {
+                    name: file.name,
+                    parents: [currentFolderId]
+                };
+
+                const formData = new FormData();
+                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                formData.append('file', file);
+
+                try {
+                    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${accessToken}` },
+                        body: formData
+                    });
+                    showToast(`${file.name} importé !`);
+                } catch (err) {
+                    showToast(`Échec pour ${file.name}`);
+                }
+            }
+            loadDriveContent();
+            loadStorageInfo();
         }
 
-        function formatBytes(bytes) {
-            if (!bytes || bytes === 0) return '0 Octet';
+        // PARTAGE DE FICHIER PAR LIEN
+        async function shareFile(fileId) {
+            showToast('Génération du lien public...');
+            try {
+                // Rendre le fichier accessible par lien
+                await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: 'reader', type: 'anyone' })
+                });
+
+                // Récupérer le lien
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=webViewLink`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const data = await res.json();
+
+                if (data.webViewLink) {
+                    navigator.clipboard.writeText(data.webViewLink);
+                    showToast('Lien de partage copié dans le presse-papiers !');
+                }
+            } catch (err) {
+                showToast('Erreur lors du partage');
+            }
+        }
+
+        // SUPPRESSION DE FICHIER
+        async function deleteFile(fileId) {
+            if (!confirm('Voulez-vous vraiment supprimer cet élément ?')) return;
+
+            try {
+                await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                showToast('Élément supprimé');
+                loadDriveContent();
+                loadStorageInfo();
+            } catch (err) {
+                showToast('Erreur de suppression');
+            }
+        }
+
+        // TÉLÉCHARGEMENT DE FICHIER
+        function downloadFile(fileId) {
+            window.open(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, '_blank');
+        }
+
+        // RECHERCHE EN TEMPS REEL
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allFiles.filter(f => f.name.toLowerCase().includes(query));
+            renderFiles(filtered);
+        });
+
+        // ESPACE DE STOCKAGE
+        async function loadStorageInfo() {
+            try {
+                const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const data = await res.json();
+                const quota = data.storageQuota;
+
+                const limit = parseInt(quota.limit) || 15 * 1024 * 1024 * 1024;
+                const usage = parseInt(quota.usage) || 0;
+                const percent = Math.min(100, Math.round((usage / limit) * 100));
+
+                document.getElementById('storage-fill').style.width = `${percent}%`;
+                document.getElementById('storage-text').innerText = `${formatSize(usage)} / ${formatSize(limit)} utilisés (${percent}%)`;
+            } catch (err) {
+                document.getElementById('storage-text').innerText = 'Quota non disponible';
+            }
+        }
+
+        // GLISSER-DEPOSER (DRAG & DROP)
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+        });
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            uploadFiles(files);
+        });
+
+        // UTILITAIRES
+        function showLoading(show) {
+            document.getElementById('loading-state').style.display = show ? 'flex' : 'none';
+            if (show) {
+                document.getElementById('empty-state').style.display = 'none';
+                document.getElementById('files-grid').style.display = 'none';
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function formatSize(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
             const k = 1024;
-            const sizes = ['Octets', 'Ko', 'Mo', 'Go'];
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         }
 
-        function updateStorageMetrics() {
-            if (!accessToken) {
-                const totalBytes = items.reduce((acc, curr) => acc + (curr.size || 0), 0);
-                const formatted = formatBytes(totalBytes);
-                document.getElementById('storageUsedText').innerText = `${formatted} utilisé`;
-                const simulatedPercent = Math.min(100, Math.round((totalBytes / (15 * 1024 * 1024 * 1024)) * 100));
-                document.getElementById('storageBar').style.width = `${simulatedPercent}%`;
-            }
+        function getFileIcon(mimeType) {
+            if (mimeType.includes('image')) return 'image';
+            if (mimeType.includes('video')) return 'video';
+            if (mimeType.includes('audio')) return 'music';
+            if (mimeType.includes('pdf')) return 'file-text';
+            if (mimeType.includes('zip') || mimeType.includes('rar')) return 'archive';
+            return 'file';
         }
     </script>
 </body>
