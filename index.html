@@ -437,6 +437,83 @@
             border-color: var(--danger);
         }
 
+        /* --- POPUP UPLOAD PROGRESSION EN BAS À DROITE --- */
+        #upload-progress-popup {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 360px;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(16px);
+            z-index: 2500;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .upload-popup-header {
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .upload-popup-list {
+            padding: 14px 18px;
+            max-height: 220px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .upload-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .upload-item-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .upload-item-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+            font-weight: 500;
+        }
+
+        .upload-bar-bg {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .upload-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-gradient);
+            transition: width 0.2s ease;
+        }
+
         /* --- PREVIEW MODAL --- */
         .modal-overlay {
             position: fixed;
@@ -486,7 +563,7 @@
             border: none;
         }
 
-        /* --- OPTIONS DE PARTAGE MODAL --- */
+        /* --- MODALS --- */
         .modal-card {
             background: var(--bg-sidebar);
             border: 1px solid var(--border-color);
@@ -544,7 +621,7 @@
         #toast {
             position: fixed;
             bottom: 30px;
-            right: 30px;
+            left: 30px;
             background: rgba(16, 23, 42, 0.9);
             border: 1px solid #3b82f6;
             color: white;
@@ -658,7 +735,16 @@
         </main>
     </div>
 
-    <!-- PREVIEW MODAL (VISUALISATION + TÉLÉCHARGEMENT) -->
+    <!-- POPUP DE PROGRESSION DE L'IMPORTATION (EN BAS À DROITE) -->
+    <div id="upload-progress-popup">
+        <div class="upload-popup-header">
+            <span id="upload-popup-status">Importation en cours...</span>
+            <button class="btn-icon" style="width: 24px; height: 24px;" onclick="closeUploadPopup()"><i data-lucide="x" size="14"></i></button>
+        </div>
+        <div class="upload-popup-list" id="upload-popup-list"></div>
+    </div>
+
+    <!-- PREVIEW MODAL -->
     <div class="modal-overlay" id="preview-modal">
         <div class="preview-card">
             <div class="preview-header">
@@ -727,7 +813,6 @@
         lucide.createIcons();
 
         window.onload = () => {
-            // VÉRIFICATION D'UN LIEN DE PARTAGE DIRECT DANS L'URL (SANS CONNEXION)
             const urlParams = new URLSearchParams(window.location.search);
             const sharedFileId = urlParams.get('fileId');
             const allowDownload = urlParams.get('dl') === '1';
@@ -738,7 +823,6 @@
                 return;
             }
 
-            // INIT AUTHENTIFICATION SI SUR LE SITE PRINCIPAL
             tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID,
                 scope: SCOPES,
@@ -773,7 +857,6 @@
             showToast('Déconnecté');
         });
 
-        // CHARGEMENT DE LEURS FICHIERS
         async function loadDriveContent() {
             showLoading(true);
             try {
@@ -848,7 +931,91 @@
             lucide.createIcons();
         }
 
-        // PREVIEW POUR VISITEURS OU UTILISATEUR CONNECTÉ
+        // UPLOAD AVEC BARRE DE PROGRESSION POPUP EN BAS
+        const hiddenInput = document.getElementById('hidden-file-input');
+        document.getElementById('upload-file-btn').onclick = () => hiddenInput.click();
+        hiddenInput.onchange = (e) => uploadFiles(e.target.files);
+
+        async function uploadFiles(files) {
+            if (!files.length) return;
+
+            const popup = document.getElementById('upload-progress-popup');
+            const popupList = document.getElementById('upload-popup-list');
+            const popupStatus = document.getElementById('upload-popup-status');
+
+            popup.style.display = 'flex';
+            popupStatus.innerText = `Importation de ${files.length} fichier(s)...`;
+            popupList.innerHTML = '';
+
+            const uploadTasks = Array.from(files).map((file, idx) => {
+                const id = `upload-item-${idx}`;
+                const itemEl = document.createElement('div');
+                itemEl.className = 'upload-item';
+                itemEl.id = id;
+                itemEl.innerHTML = `
+                    <div class="upload-item-info">
+                        <span class="upload-item-name">${file.name}</span>
+                        <span class="upload-item-percent" id="${id}-percent">0%</span>
+                    </div>
+                    <div class="upload-bar-bg">
+                        <div class="upload-bar-fill" id="${id}-bar"></div>
+                    </div>
+                `;
+                popupList.appendChild(itemEl);
+
+                return uploadSingleFile(file, id);
+            });
+
+            await Promise.all(uploadTasks);
+            popupStatus.innerText = 'Importation terminée !';
+            loadDriveContent();
+            loadStorageInfo();
+
+            setTimeout(() => {
+                closeUploadPopup();
+            }, 4000);
+        }
+
+        function uploadSingleFile(file, elementId) {
+            return new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                const metadata = { name: file.name, parents: [currentFolderId] };
+                const formData = new FormData();
+                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                formData.append('file', file);
+
+                xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+                xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        document.getElementById(`${elementId}-bar`).style.width = `${percent}%`;
+                        document.getElementById(`${elementId}-percent`).innerText = `${percent}%`;
+                    }
+                };
+
+                xhr.onload = () => {
+                    document.getElementById(`${elementId}-percent`).innerText = 'Terminé';
+                    document.getElementById(`${elementId}-bar`).style.width = '100%';
+                    resolve();
+                };
+
+                xhr.onerror = () => {
+                    document.getElementById(`${elementId}-percent`).innerText = 'Erreur';
+                    document.getElementById(`${elementId}-bar`).style.background = 'var(--danger)';
+                    resolve();
+                };
+
+                xhr.send(formData);
+            });
+        }
+
+        function closeUploadPopup() {
+            document.getElementById('upload-progress-popup').style.display = 'none';
+        }
+
+        // PREVIEW
         function openPreview(fileId, fileName, canDownload = false) {
             document.getElementById('preview-title').innerText = fileName;
             const container = document.getElementById('preview-container');
@@ -875,7 +1042,7 @@
             document.getElementById('preview-container').innerHTML = '';
         }
 
-        // FENÊTRE DE PARTAGE
+        // SHARE
         function openShareModal(fileId) {
             selectedShareFileId = fileId;
             document.getElementById('share-modal').style.display = 'flex';
@@ -891,7 +1058,6 @@
 
             showToast('Autorisation en cours...');
             try {
-                // Rendre le fichier public en lecture dans Google Drive
                 await fetch(`https://www.googleapis.com/drive/v3/files/${selectedShareFileId}/permissions`, {
                     method: 'POST',
                     headers: {
@@ -901,18 +1067,17 @@
                     body: JSON.stringify({ role: 'reader', type: 'anyone' })
                 });
 
-                // Générer l'URL personnalisée (ex: mgdrive.kdns.fr?fileId=...&dl=1)
                 const shareUrl = `${window.location.origin}${window.location.pathname}?fileId=${selectedShareFileId}&dl=${allowDownload ? '1' : '0'}`;
 
                 navigator.clipboard.writeText(shareUrl);
                 closeShareModal();
-                showToast('Lien de partage mgdrive.kdns.fr copié !');
+                showToast('Lien mgdrive.kdns.fr copié !');
             } catch (err) {
-                showToast('Erreur lors de la configuration du partage');
+                showToast('Erreur lors du partage');
             }
         };
 
-        // NAVIGATION DOSSIERS
+        // NAVIGATION
         function navigateToFolder(folderId, folderName) {
             currentFolderId = folderId;
             const index = folderHistory.findIndex(item => item.id === folderId);
@@ -945,7 +1110,7 @@
             });
         }
 
-        // CRÉER UN DOSSIER
+        // FOLDER MODAL
         const folderModal = document.getElementById('folder-modal');
         document.getElementById('new-folder-btn').onclick = () => folderModal.style.display = 'flex';
         document.getElementById('cancel-folder-btn').onclick = () => folderModal.style.display = 'none';
@@ -976,36 +1141,7 @@
             }
         };
 
-        // UPLOAD FILE
-        const hiddenInput = document.getElementById('hidden-file-input');
-        document.getElementById('upload-file-btn').onclick = () => hiddenInput.click();
-        hiddenInput.onchange = (e) => uploadFiles(e.target.files);
-
-        async function uploadFiles(files) {
-            if (!files.length) return;
-            for (let file of files) {
-                showToast(`Envoi de ${file.name}...`);
-                const metadata = { name: file.name, parents: [currentFolderId] };
-                const formData = new FormData();
-                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                formData.append('file', file);
-
-                try {
-                    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${accessToken}` },
-                        body: formData
-                    });
-                    showToast(`${file.name} envoyé !`);
-                } catch (err) {
-                    showToast(`Erreur d'envoi pour ${file.name}`);
-                }
-            }
-            loadDriveContent();
-            loadStorageInfo();
-        }
-
-        // ACTIONS FICHIER
+        // DELETE & DOWNLOAD
         async function deleteFile(fileId) {
             if (!confirm('Voulez-vous vraiment supprimer cet élément ?')) return;
             try {
@@ -1025,7 +1161,7 @@
             window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
         }
 
-        // QUOTA STOCKAGE
+        // STORAGE QUOTA
         async function loadStorageInfo() {
             try {
                 const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
@@ -1045,7 +1181,7 @@
             }
         }
 
-        // RECHERCHE
+        // SEARCH
         document.getElementById('search-input').oninput = (e) => {
             const query = e.target.value.toLowerCase();
             const filtered = allFiles.filter(f => f.name.toLowerCase().includes(query));
