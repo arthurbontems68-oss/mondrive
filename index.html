@@ -3,35 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudDrive Pro - Multi-Drive & Storage Manager</title>
+    <title>CloudDrive Pro - Next-Gen Storage</title>
 
-    <!-- Lucide Icons & Google Fonts -->
+    <!-- Lucide Icons & Fonts -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Google Identity Services Library -->
+    <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
         :root {
-            --bg-dark: #060814;
-            --bg-sidebar: rgba(11, 15, 30, 0.85);
-            --bg-card: rgba(19, 26, 48, 0.45);
-            --bg-card-hover: rgba(30, 41, 75, 0.7);
+            --bg-dark: #030712;
+            --bg-sidebar: rgba(11, 15, 29, 0.75);
+            --bg-card: rgba(17, 24, 39, 0.45);
+            --bg-card-hover: rgba(31, 41, 55, 0.65);
             
-            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-            --accent-glow: rgba(168, 85, 247, 0.35);
-            --accent-color: #a855f7;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+            --accent-glow: rgba(6, 182, 212, 0.35);
             
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.07);
-            --border-hover: rgba(168, 85, 247, 0.45);
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(6, 182, 212, 0.45);
             
             --danger: #f43f5e;
-            --glass-bg: rgba(13, 17, 34, 0.75);
+            --warning: #f59e0b;
+            --success: #10b981;
+            
+            --glass-bg: rgba(15, 23, 42, 0.85);
             --glass-border: rgba(255, 255, 255, 0.12);
         }
 
@@ -46,9 +51,9 @@
         body {
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.14) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(168, 85, 247, 0.12) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
             color: var(--text-main);
             height: 100vh;
             overflow: hidden;
@@ -60,30 +65,30 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.4); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
 
-        /* --- LOGIN SCREEN --- */
-        #login-screen {
+        /* --- LOGIN & EXPIRED SCREEN --- */
+        .fullscreen-overlay {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at center, #11152c 0%, var(--bg-dark) 100%);
-            z-index: 1000;
+            background: radial-gradient(circle at center, #0f172a 0%, var(--bg-dark) 100%);
+            z-index: 10000;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
 
-        .login-card {
-            background: rgba(13, 17, 34, 0.85);
-            backdrop-filter: blur(28px);
+        .auth-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(32px);
             border: 1px solid var(--glass-border);
             border-radius: 28px;
             padding: 52px 44px;
-            max-width: 450px;
+            max-width: 460px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(168, 85, 247, 0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 50px var(--accent-glow);
             animation: fadeIn 0.4s ease-out;
         }
 
@@ -92,7 +97,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .login-logo {
+        .brand-logo-large {
             width: 88px;
             height: 88px;
             background: var(--accent-gradient);
@@ -102,10 +107,16 @@
             justify-content: center;
             margin: 0 auto 28px;
             box-shadow: 0 16px 36px var(--accent-glow);
+            animation: pulseGlow 3s infinite ease-in-out;
         }
 
-        .login-title {
-            font-size: 32px;
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 16px 36px var(--accent-glow); }
+            50% { box-shadow: 0 20px 50px rgba(6, 182, 212, 0.6); }
+        }
+
+        .auth-title {
+            font-size: 30px;
             font-weight: 800;
             margin-bottom: 12px;
             letter-spacing: -0.5px;
@@ -114,7 +125,7 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .login-subtitle {
+        .auth-subtitle {
             color: var(--text-muted);
             font-size: 14px;
             margin-bottom: 36px;
@@ -135,7 +146,7 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             box-shadow: 0 8px 24px var(--accent-glow);
         }
 
@@ -153,9 +164,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 32px;
-            background: rgba(11, 15, 30, 0.7);
-            backdrop-filter: blur(16px);
-            z-index: 10;
+            background: rgba(11, 15, 29, 0.75);
+            backdrop-filter: blur(20px);
+            z-index: 100;
         }
 
         .header-brand {
@@ -178,7 +189,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 14px var(--accent-glow);
+            box-shadow: 0 4px 16px var(--accent-glow);
         }
 
         .search-container {
@@ -210,14 +221,12 @@
         }
 
         .search-input:focus {
-            border-color: var(--accent-color);
+            border-color: var(--accent-cyan);
             background: rgba(255, 255, 255, 0.07);
-            box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15);
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15);
         }
 
-        .search-input:focus + i {
-            color: #c084fc;
-        }
+        .search-input:focus + i { color: var(--accent-cyan); }
 
         .btn-logout {
             background: rgba(244, 63, 94, 0.1);
@@ -256,118 +265,81 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
         }
 
-        /* DRIVE SELECTOR (3 DRIVES) */
-        .drive-selector-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        /* BOUTON D'IMPORTATION UNIQUE DROPDOWN */
+        .import-dropdown-container {
+            position: relative;
+            width: 100%;
         }
 
-        .drive-selector-title {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-        }
-
-        .drive-tabs {
-            display: flex;
-            gap: 6px;
-        }
-
-        .drive-tab {
-            flex: 1;
-            padding: 10px 8px;
-            border-radius: 10px;
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .drive-tab.active {
-            background: rgba(168, 85, 247, 0.18);
-            color: #e9d5ff;
-            border-color: rgba(168, 85, 247, 0.4);
-            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
-        }
-
-        .drive-tab:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-main);
-        }
-
-        /* ACTION BUTTONS */
-        .upload-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-primary {
+        .btn-import-main {
+            width: 100%;
             background: var(--accent-gradient);
             color: white;
             border: none;
-            padding: 14px 20px;
-            border-radius: 14px;
-            font-weight: 600;
+            padding: 15px 22px;
+            border-radius: 16px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 14px;
-            box-shadow: 0 6px 20px var(--accent-glow);
-            transition: all 0.2s ease;
+            justify-content: space-between;
+            font-size: 15px;
+            box-shadow: 0 6px 24px var(--accent-glow);
+            transition: all 0.25s ease;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 24px var(--accent-glow);
+        .btn-import-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px var(--accent-glow);
             filter: brightness(1.08);
         }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
+        .import-menu {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(24px);
+            border-radius: 18px;
+            padding: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            z-index: 500;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .import-menu.show { display: flex; }
+
+        .import-menu-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 13px;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
             transition: all 0.2s ease;
         }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
+        .import-menu-item:hover {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
         }
 
         .sidebar-menu {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .sidebar-item {
@@ -375,11 +347,11 @@
             align-items: center;
             gap: 14px;
             padding: 12px 16px;
-            border-radius: 12px;
+            border-radius: 14px;
             color: var(--text-muted);
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s ease;
         }
 
@@ -389,19 +361,21 @@
         }
 
         .sidebar-item.active {
-            background: rgba(168, 85, 247, 0.12);
-            color: #d8b4fe;
-            font-weight: 600;
-            border-left: 3px solid #a855f7;
-            border-radius: 4px 12px 12px 4px;
+            background: rgba(6, 182, 212, 0.12);
+            color: #67e8f9;
+            border-left: 3px solid var(--accent-cyan);
+            border-radius: 4px 14px 14px 4px;
         }
 
+        /* STORAGE WIDGET */
         .storage-widget {
             margin-top: auto;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
             padding: 20px;
             border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
         }
 
         .storage-title {
@@ -411,28 +385,32 @@
             letter-spacing: 1px;
             margin-bottom: 12px;
             font-weight: 700;
+            display: flex;
+            justify-content: space-between;
         }
 
         .storage-bar {
-            height: 8px;
+            height: 10px;
             background: rgba(255, 255, 255, 0.08);
-            border-radius: 6px;
+            border-radius: 8px;
             overflow: hidden;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .storage-fill {
             height: 100%;
             width: 0%;
             background: var(--accent-gradient);
-            transition: width 0.6s ease;
-            border-radius: 6px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            box-shadow: 0 0 12px var(--accent-glow);
         }
 
         .storage-text {
             font-size: 12px;
             color: var(--text-muted);
-            font-weight: 500;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         /* --- MAIN CONTENT --- */
@@ -505,8 +483,8 @@
         }
 
         .view-btn.active, .view-btn:hover {
-            background: rgba(168, 85, 247, 0.2);
-            color: #e9d5ff;
+            background: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
         }
 
         .drop-zone {
@@ -522,15 +500,15 @@
         }
 
         .drop-zone.dragover {
-            border-color: #a855f7;
-            background: rgba(168, 85, 247, 0.06);
-            box-shadow: inset 0 0 30px rgba(168, 85, 247, 0.15);
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.06);
+            box-shadow: inset 0 0 30px rgba(6, 182, 212, 0.15);
         }
 
-        /* GRID VIEW */
+        /* CARDS GRID & LIST */
         .files-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
             gap: 20px;
             width: 100%;
             align-content: start;
@@ -538,7 +516,7 @@
 
         .file-card {
             background: var(--bg-card);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 20px;
@@ -554,23 +532,41 @@
             border-color: var(--border-hover);
             transform: translateY(-4px);
             background: var(--bg-card-hover);
-            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(6, 182, 212, 0.15);
+        }
+
+        .file-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .file-icon {
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
             border-radius: 14px;
-            background: rgba(168, 85, 247, 0.12);
-            color: #c084fc;
+            background: rgba(6, 182, 212, 0.12);
+            color: #67e8f9;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: transform 0.2s ease;
         }
 
-        .file-card:hover .file-icon {
-            transform: scale(1.05);
+        .file-card:hover .file-icon { transform: scale(1.08); }
+
+        .star-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 4px;
+        }
+
+        .star-btn:hover, .star-btn.starred {
+            color: #fbbf24;
+            transform: scale(1.15);
         }
 
         .file-name {
@@ -598,11 +594,11 @@
             padding-top: 12px;
         }
 
-        /* LIST VIEW */
+        /* VUE LISTE */
         .files-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
         }
 
@@ -610,8 +606,8 @@
             flex-direction: row;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 20px;
-            border-radius: 14px;
+            padding: 14px 22px;
+            border-radius: 16px;
             gap: 16px;
         }
 
@@ -651,9 +647,9 @@
         }
 
         .btn-icon:hover {
-            background: #a855f7;
+            background: var(--accent-cyan);
             color: white;
-            border-color: #a855f7;
+            border-color: var(--accent-cyan);
             transform: translateY(-1px);
         }
 
@@ -663,17 +659,17 @@
             border-color: var(--danger);
         }
 
-        /* --- POPUP UPLOAD PROGRESSION --- */
+        /* --- POPUP UPLOAD FUTURISTE --- */
         #upload-progress-popup {
             position: fixed;
             bottom: 28px;
             right: 28px;
-            width: 380px;
-            background: rgba(14, 18, 36, 0.95);
+            width: 390px;
+            background: rgba(15, 23, 42, 0.95);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
+            border-radius: 22px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px var(--accent-glow);
+            backdrop-filter: blur(24px);
             z-index: 2500;
             overflow: hidden;
             display: none;
@@ -694,12 +690,12 @@
             justify-content: space-between;
             align-items: center;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .upload-popup-list {
             padding: 16px 20px;
-            max-height: 240px;
+            max-height: 260px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -731,6 +727,7 @@
             background: rgba(255, 255, 255, 0.08);
             border-radius: 4px;
             overflow: hidden;
+            position: relative;
         }
 
         .upload-bar-fill {
@@ -739,9 +736,10 @@
             background: var(--accent-gradient);
             transition: width 0.2s ease;
             border-radius: 4px;
+            box-shadow: 0 0 10px var(--accent-cyan);
         }
 
-        /* --- PREVIEW MODAL --- */
+        /* --- MODALES STYLISÉES --- */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -750,22 +748,171 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 2000;
+            z-index: 3000;
             padding: 30px;
             animation: fadeIn 0.2s ease;
         }
 
-        .preview-card {
-            background: var(--bg-sidebar);
+        .modal-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px var(--accent-glow);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .modal-desc {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: white;
+            outline: none;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+
+        .form-select option {
+            background: #0f172a;
+            color: white;
+        }
+
+        .form-select:focus, .form-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .toggle-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--accent-cyan); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 14px 22px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            box-shadow: 0 6px 20px var(--accent-glow);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px var(--accent-glow);
+            filter: brightness(1.08);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- PREVIEW MODAL --- */
+        .preview-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1050px;
             height: 85vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9);
         }
 
         .preview-header {
@@ -792,84 +939,28 @@
             border: none;
         }
 
-        /* --- MODALS --- */
-        .modal-card {
-            background: var(--bg-sidebar);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 32px;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
-            animation: fadeIn 0.2s ease;
-        }
-
-        .toggle-option {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 16px;
-            border-radius: 14px;
-            margin: 20px 0;
-            border: 1px solid var(--border-color);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 24px;
-        }
-
-        .switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background-color: rgba(255, 255, 255, 0.2);
-            transition: .3s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider { background-color: #a855f7; }
-        input:checked + .slider:before { transform: translateX(22px); }
-
-        /* --- TOAST & SPINNER --- */
+        /* TOAST & SPINNER */
         #toast {
             position: fixed;
             bottom: 30px;
             left: 30px;
-            background: rgba(14, 18, 36, 0.95);
-            border: 1px solid #a855f7;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-cyan);
             color: white;
             padding: 14px 24px;
-            border-radius: 14px;
+            border-radius: 16px;
             display: none;
             align-items: center;
             gap: 12px;
-            z-index: 3000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+            z-index: 4000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
+            backdrop-filter: blur(12px);
             animation: fadeIn 0.3s ease;
         }
 
         .spinner {
             border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #a855f7;
+            border-top: 3px solid var(--accent-cyan);
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -881,17 +972,32 @@
 </head>
 <body>
 
-    <!-- CONNEXION -->
-    <div id="login-screen">
-        <div class="login-card">
-            <div class="login-logo">
-                <i data-lucide="cloud-lightning" size="42" color="#ffffff"></i>
+    <!-- CONNEXION OAUTH -->
+    <div id="login-screen" class="fullscreen-overlay">
+        <div class="auth-card">
+            <div class="brand-logo-large">
+                <i data-lucide="zap" size="44" color="#ffffff"></i>
             </div>
-            <h1 class="login-title">CloudDrive Pro</h1>
-            <p class="login-subtitle">Connectez-vous à votre espace multi-drive Google Drive sécurisé.</p>
+            <h1 class="auth-title">CloudDrive Pro</h1>
+            <p class="auth-subtitle">Espace de stockage cloud futuriste ultra-sécurisé via Google Drive API.</p>
             <button class="btn-google-login" id="login-btn">
                 <i data-lucide="log-in" size="22"></i>
                 Se connecter avec Google
+            </button>
+        </div>
+    </div>
+
+    <!-- ÉCRAN DE LIEN EXPIRÉ -->
+    <div id="expired-screen" class="fullscreen-overlay" style="display: none;">
+        <div class="auth-card" style="border-color: rgba(244, 63, 94, 0.3);">
+            <div class="brand-logo-large" style="background: linear-gradient(135deg, #f43f5e, #e11d48);">
+                <i data-lucide="clock" size="44" color="#ffffff"></i>
+            </div>
+            <h1 class="auth-title">Lien Expiré</h1>
+            <p class="auth-subtitle">Ce lien de partage a dépassé sa durée de validité et n'est plus accessible.</p>
+            <button class="btn-google-login" style="background: rgba(255,255,255,0.08);" onclick="window.location.href = window.location.pathname">
+                <i data-lucide="arrow-left" size="20"></i>
+                Retourner à l'accueil
             </button>
         </div>
     </div>
@@ -900,7 +1006,7 @@
     <header id="app-header">
         <div class="header-brand">
             <div class="header-brand-icon">
-                <i data-lucide="cloud-lightning" size="22" color="#ffffff"></i>
+                <i data-lucide="zap" size="22" color="#ffffff"></i>
             </div>
             CloudDrive Pro
         </div>
@@ -919,51 +1025,56 @@
     <div class="app-body">
         <!-- SIDEBAR -->
         <aside class="sidebar">
-            <!-- SÉLECTEUR MULTI-DRIVE (3 DRIVES) -->
-            <div class="drive-selector-box">
-                <div class="drive-selector-title">Comptes / Drives</div>
-                <div class="drive-tabs">
-                    <button class="drive-tab active" data-drive="1" onclick="switchDrive(1)">
-                        <i data-lucide="hard-drive" size="14"></i> Drive 1
-                    </button>
-                    <button class="drive-tab" data-drive="2" onclick="switchDrive(2)">
-                        <i data-lucide="briefcase" size="14"></i> Drive 2
-                    </button>
-                    <button class="drive-tab" data-drive="3" onclick="switchDrive(3)">
-                        <i data-lucide="users" size="14"></i> Drive 3
-                    </button>
+            <!-- UN SEUL BOUTON D'IMPORTATION AVEC DROPDOWN -->
+            <div class="import-dropdown-container">
+                <button class="btn-import-main" id="btn-import-trigger">
+                    <span style="display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="plus-circle" size="20"></i> Importer
+                    </span>
+                    <i data-lucide="chevron-down" size="16"></i>
+                </button>
+                <div class="import-menu" id="import-menu">
+                    <div class="import-menu-item" id="opt-import-files">
+                        <i data-lucide="file-up" size="18"></i> Importer des Fichiers
+                    </div>
+                    <div class="import-menu-item" id="opt-import-folder">
+                        <i data-lucide="folder-up" size="18"></i> Importer un Dossier
+                    </div>
+                    <div class="import-menu-item" id="opt-new-folder" style="border-top: 1px solid var(--border-color);">
+                        <i data-lucide="folder-plus" size="18"></i> Nouveau Dossier
+                    </div>
                 </div>
-            </div>
 
-            <!-- BOUTONS D'IMPORTATION -->
-            <div class="upload-actions">
-                <button class="btn-primary" id="upload-file-btn">
-                    <i data-lucide="upload-cloud" size="18"></i>
-                    Importer Fichier
-                </button>
                 <input type="file" id="hidden-file-input" style="display: none;" multiple>
-
-                <button class="btn-secondary" id="upload-folder-btn">
-                    <i data-lucide="folder-up" size="18"></i>
-                    Importer Dossier
-                </button>
                 <input type="file" id="hidden-folder-input" style="display: none;" webkitdirectory directory multiple>
-
-                <button class="btn-secondary" id="new-folder-btn">
-                    <i data-lucide="folder-plus" size="18"></i>
-                    Nouveau dossier
-                </button>
             </div>
 
+            <!-- MENU FILTRES ET NAV -->
             <ul class="sidebar-menu">
-                <li class="sidebar-item active">
+                <li class="sidebar-item active" data-filter="all">
                     <i data-lucide="hard-drive" size="18"></i>
                     Mon Drive
                 </li>
+                <li class="sidebar-item" data-filter="starred">
+                    <i data-lucide="star" size="18"></i>
+                    Favoris
+                </li>
+                <li class="sidebar-item" data-filter="docs">
+                    <i data-lucide="file-text" size="18"></i>
+                    Documents
+                </li>
+                <li class="sidebar-item" data-filter="media">
+                    <i data-lucide="image" size="18"></i>
+                    Médias & Images
+                </li>
             </ul>
 
+            <!-- WIDGET DE STOCKAGE -->
             <div class="storage-widget">
-                <div class="storage-title">Stockage Utilisé</div>
+                <div class="storage-title">
+                    <span>Stockage Utilisé</span>
+                    <i data-lucide="database" size="14"></i>
+                </div>
                 <div class="storage-bar">
                     <div class="storage-fill" id="storage-fill"></div>
                 </div>
@@ -971,7 +1082,7 @@
             </div>
         </aside>
 
-        <!-- MAIN WORKSPACE -->
+        <!-- WORKSPACE PRINCIPAL -->
         <main class="main-content">
             <div class="top-toolbar">
                 <div class="breadcrumb" id="breadcrumb">
@@ -996,8 +1107,8 @@
 
                 <div id="empty-state" style="display: none; text-align: center; margin: auto;">
                     <i data-lucide="folder-open" size="72" color="#475569" style="margin-bottom: 18px;"></i>
-                    <h3 style="font-size: 18px; margin-bottom: 8px;">Aucun fichier dans ce dossier</h3>
-                    <p style="color: var(--text-muted); font-size: 14px;">Glissez des fichiers ou des dossiers ici pour les importer</p>
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">Aucun fichier ou dossier ici</h3>
+                    <p style="color: var(--text-muted); font-size: 14px;">Glissez-déposez vos éléments ou utilisez le bouton Importer</p>
                 </div>
 
                 <div class="files-grid" id="files-grid" style="display: none;"></div>
@@ -1005,10 +1116,12 @@
         </main>
     </div>
 
-    <!-- POPUP DE PROGRESSION DE L'IMPORTATION -->
+    <!-- POPUP DE PROGRESSION DE TÉLÉVERSEMENT NÉON -->
     <div id="upload-progress-popup">
         <div class="upload-popup-header">
-            <span id="upload-popup-status">Importation en cours...</span>
+            <span id="upload-popup-status" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="upload-cloud" size="16" color="#06b6d4"></i> Importation...
+            </span>
             <button class="btn-icon" style="width: 24px; height: 24px;" onclick="closeUploadPopup()"><i data-lucide="x" size="14"></i></button>
         </div>
         <div class="upload-popup-list" id="upload-popup-list"></div>
@@ -1018,7 +1131,7 @@
     <div class="modal-overlay" id="preview-modal">
         <div class="preview-card">
             <div class="preview-header">
-                <h3 id="preview-title" style="font-size: 18px; font-weight: 600;">Aperçu du fichier</h3>
+                <h3 id="preview-title" style="font-size: 18px; font-weight: 700;">Aperçu du fichier</h3>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="btn-primary" id="preview-download-btn" style="display: none; padding: 8px 16px; font-size: 13px;">
                         <i data-lucide="download" size="16"></i> Télécharger
@@ -1030,21 +1143,34 @@
         </div>
     </div>
 
-    <!-- SHARE OPTIONS MODAL -->
+    <!-- SHARE OPTIONS MODAL AVEC EXPIRATION -->
     <div class="modal-overlay" id="share-modal">
         <div class="modal-card">
-            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Partager le fichier</h3>
-            <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Toute personne avec le lien pourra visualiser ce fichier sur votre site.</p>
+            <h3 class="modal-title">Partager le fichier</h3>
+            <p class="modal-desc">Générez un lien sécurisé et définissez la durée d'accès publique.</p>
             
-            <div class="toggle-option">
-                <span style="font-weight: 600; font-size: 14px;">Autoriser le téléchargement</span>
-                <label class="switch">
-                    <input type="checkbox" id="allow-download-toggle" checked>
-                    <span class="slider"></span>
-                </label>
+            <div class="form-group">
+                <label class="form-label">Durée de validité du lien</label>
+                <select class="form-select" id="share-expiration-select">
+                    <option value="never">Jamais (Permanent)</option>
+                    <option value="3600">1 Heure</option>
+                    <option value="86400">24 Heures</option>
+                    <option value="604800">7 Jours</option>
+                    <option value="2592000">30 Jours</option>
+                </select>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <div class="form-group">
+                <div class="toggle-option">
+                    <span style="font-weight: 600; font-size: 14px;">Autoriser le téléchargement direct</span>
+                    <label class="switch">
+                        <input type="checkbox" id="allow-download-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px;">
                 <button class="btn-secondary" onclick="closeShareModal()">Annuler</button>
                 <button class="btn-primary" id="confirm-share-btn"><i data-lucide="link" size="16"></i> Copier le lien</button>
             </div>
@@ -1054,18 +1180,19 @@
     <!-- CREATE FOLDER MODAL -->
     <div class="modal-overlay" id="folder-modal">
         <div class="modal-card">
-            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 18px;">Nouveau dossier</h3>
-            <input type="text" id="folder-name-input" placeholder="Nom du dossier" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: 12px; color: white; outline: none; margin-bottom: 24px; font-size: 14px;">
+            <h3 class="modal-title">Nouveau dossier</h3>
+            <p class="modal-desc">Entrez le nom du nouveau dossier à créer dans cet emplacement.</p>
+            <input type="text" id="folder-name-input" class="form-input" placeholder="Nom du dossier" style="margin-bottom: 24px;">
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <button class="btn-secondary" id="cancel-folder-btn">Annuler</button>
-                <button class="btn-primary" id="confirm-folder-btn">Créer</button>
+                <button class="btn-primary" id="confirm-folder-btn">Créer le dossier</button>
             </div>
         </div>
     </div>
 
     <!-- TOAST NOTIFICATION -->
     <div id="toast">
-        <i data-lucide="check-circle" size="20" color="#a855f7"></i>
+        <i data-lucide="check-circle" size="20" color="#06b6d4"></i>
         <span id="toast-message">Notification</span>
     </div>
 
@@ -1073,14 +1200,15 @@
         const CLIENT_ID = '556364672735-22kr42sc1qt3m5rn5cr3tihch6d6p48o.apps.googleusercontent.com';
         const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-        let activeDriveIndex = parseInt(localStorage.getItem('active_drive_index') || '1');
         let tokenClient;
-        let accessToken = localStorage.getItem(`gdrive_token_${activeDriveIndex}`);
-        let currentViewMode = 'grid'; // 'grid' ou 'list'
+        let accessToken = localStorage.getItem('gdrive_single_token');
+        let currentViewMode = 'grid';
+        let currentFilter = 'all';
         
         let currentFolderId = 'root';
-        let folderHistory = [{ id: 'root', name: `Drive ${activeDriveIndex}` }];
+        let folderHistory = [{ id: 'root', name: 'Mon Drive' }];
         let allFiles = [];
+        let starredFileIds = JSON.parse(localStorage.getItem('starred_files') || '[]');
         let selectedShareFileId = null;
 
         lucide.createIcons();
@@ -1089,9 +1217,17 @@
             const urlParams = new URLSearchParams(window.location.search);
             const sharedFileId = urlParams.get('fileId');
             const allowDownload = urlParams.get('dl') === '1';
+            const expTime = urlParams.get('exp');
 
+            // Vérification expiration de lien partagé
             if (sharedFileId) {
                 document.getElementById('login-screen').style.display = 'none';
+
+                if (expTime && Date.now() > parseInt(expTime)) {
+                    document.getElementById('expired-screen').style.display = 'flex';
+                    return;
+                }
+
                 openPublicPreview(sharedFileId, allowDownload);
                 return;
             }
@@ -1102,7 +1238,7 @@
                 callback: (tokenResponse) => {
                     if (tokenResponse.access_token) {
                         accessToken = tokenResponse.access_token;
-                        localStorage.setItem(`gdrive_token_${activeDriveIndex}`, accessToken);
+                        localStorage.setItem('gdrive_single_token', accessToken);
                         initApp();
                     }
                 },
@@ -1112,42 +1248,53 @@
                 tokenClient.requestAccessToken();
             });
 
-            updateDriveTabsUI();
-
             if (accessToken) {
                 initApp();
             }
         };
 
-        // GESTION MULTI-DRIVE (3 DRIVES)
-        function switchDrive(index) {
-            if (activeDriveIndex === index) return;
-            activeDriveIndex = index;
-            localStorage.setItem('active_drive_index', activeDriveIndex);
-            
-            accessToken = localStorage.getItem(`gdrive_token_${activeDriveIndex}`);
-            currentFolderId = 'root';
-            folderHistory = [{ id: 'root', name: `Drive ${activeDriveIndex}` }];
-            updateDriveTabsUI();
-            updateBreadcrumb();
-
-            if (!accessToken) {
-                document.getElementById('login-screen').style.display = 'flex';
-            } else {
-                initApp();
-            }
+        function initApp() {
+            document.getElementById('login-screen').style.display = 'none';
+            loadDriveContent();
+            loadStorageInfo();
         }
 
-        function updateDriveTabsUI() {
-            document.querySelectorAll('.drive-tab').forEach(tab => {
-                const id = parseInt(tab.getAttribute('data-drive'));
-                if (id === activeDriveIndex) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('gdrive_single_token');
+            accessToken = null;
+            document.getElementById('login-screen').style.display = 'flex';
+            showToast('Déconnecté du Drive');
+        });
+
+        // MENU IMPORT DROPDOWN
+        const importBtn = document.getElementById('btn-import-trigger');
+        const importMenu = document.getElementById('import-menu');
+
+        importBtn.onclick = (e) => {
+            e.stopPropagation();
+            importMenu.classList.toggle('show');
+        };
+
+        document.addEventListener('click', () => importMenu.classList.remove('show'));
+
+        const hiddenFileInput = document.getElementById('hidden-file-input');
+        const hiddenFolderInput = document.getElementById('hidden-folder-input');
+
+        document.getElementById('opt-import-files').onclick = () => hiddenFileInput.click();
+        document.getElementById('opt-import-folder').onclick = () => hiddenFolderInput.click();
+
+        hiddenFileInput.onchange = (e) => uploadFiles(e.target.files);
+        hiddenFolderInput.onchange = (e) => uploadFolderInputHandler(e.target.files);
+
+        // NAVIGATION & FILTRES SIDEBAR
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                currentFilter = item.getAttribute('data-filter');
+                applyFilterAndRender();
             });
-        }
+        });
 
         function setViewMode(mode) {
             currentViewMode = mode;
@@ -1164,19 +1311,6 @@
             }
         }
 
-        function initApp() {
-            document.getElementById('login-screen').style.display = 'none';
-            loadDriveContent();
-            loadStorageInfo();
-        }
-
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            localStorage.removeItem(`gdrive_token_${activeDriveIndex}`);
-            accessToken = null;
-            document.getElementById('login-screen').style.display = 'flex';
-            showToast(`Déconnecté du Drive ${activeDriveIndex}`);
-        });
-
         async function loadDriveContent() {
             showLoading(true);
             try {
@@ -1186,7 +1320,7 @@
                 });
 
                 if (response.status === 401 || response.status === 403) {
-                    localStorage.removeItem(`gdrive_token_${activeDriveIndex}`);
+                    localStorage.removeItem('gdrive_single_token');
                     document.getElementById('login-screen').style.display = 'flex';
                     showToast('Session expirée, veuillez vous reconnecter');
                     return;
@@ -1194,12 +1328,31 @@
 
                 const data = await response.json();
                 allFiles = data.files || [];
-                renderFiles(allFiles);
+                applyFilterAndRender();
             } catch (err) {
-                showToast('Erreur de chargement');
+                showToast('Erreur de chargement des données');
             } finally {
                 showLoading(false);
             }
+        }
+
+        function applyFilterAndRender() {
+            let filtered = [...allFiles];
+
+            if (currentFilter === 'starred') {
+                filtered = filtered.filter(f => starredFileIds.includes(f.id));
+            } else if (currentFilter === 'docs') {
+                filtered = filtered.filter(f => f.mimeType.includes('pdf') || f.mimeType.includes('text') || f.mimeType.includes('document'));
+            } else if (currentFilter === 'media') {
+                filtered = filtered.filter(f => f.mimeType.includes('image') || f.mimeType.includes('video') || f.mimeType.includes('audio'));
+            }
+
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            if (searchVal) {
+                filtered = filtered.filter(f => f.name.toLowerCase().includes(searchVal));
+            }
+
+            renderFiles(filtered);
         }
 
         function renderFiles(files) {
@@ -1218,6 +1371,7 @@
 
             files.forEach(file => {
                 const isFolder = file.mimeType === 'application/vnd.google-apps.folder';
+                const isStarred = starredFileIds.includes(file.id);
                 const card = document.createElement('div');
                 card.className = 'file-card';
 
@@ -1225,8 +1379,13 @@
 
                 if (currentViewMode === 'grid') {
                     card.innerHTML = `
-                        <div class="file-icon">
-                            <i data-lucide="${iconName}" size="24"></i>
+                        <div class="file-card-header">
+                            <div class="file-icon">
+                                <i data-lucide="${iconName}" size="24"></i>
+                            </div>
+                            <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="event.stopPropagation(); toggleStar('${file.id}')">
+                                <i data-lucide="star" size="18" ${isStarred ? 'fill="#fbbf24"' : ''}></i>
+                            </button>
                         </div>
                         <div class="file-name" title="${file.name}">${file.name}</div>
                         <div class="file-meta">
@@ -1241,6 +1400,9 @@
                 } else {
                     card.innerHTML = `
                         <div class="file-info-group">
+                            <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="event.stopPropagation(); toggleStar('${file.id}')">
+                                <i data-lucide="star" size="18" ${isStarred ? 'fill="#fbbf24"' : ''}></i>
+                            </button>
                             <div class="file-icon">
                                 <i data-lucide="${iconName}" size="20"></i>
                             </div>
@@ -1271,17 +1433,17 @@
             lucide.createIcons();
         }
 
-        // IMPORTATION DE FICHIERS ET DE DOSSIERS
-        const hiddenFileInput = document.getElementById('hidden-file-input');
-        const hiddenFolderInput = document.getElementById('hidden-folder-input');
+        function toggleStar(fileId) {
+            if (starredFileIds.includes(fileId)) {
+                starredFileIds = starredFileIds.filter(id => id !== fileId);
+            } else {
+                starredFileIds.push(fileId);
+            }
+            localStorage.setItem('starred_files', JSON.stringify(starredFileIds));
+            applyFilterAndRender();
+        }
 
-        document.getElementById('upload-file-btn').onclick = () => hiddenFileInput.click();
-        document.getElementById('upload-folder-btn').onclick = () => hiddenFolderInput.click();
-
-        hiddenFileInput.onchange = (e) => uploadFiles(e.target.files);
-        hiddenFolderInput.onchange = (e) => uploadFolderInputHandler(e.target.files);
-
-        // Upload normal de fichiers
+        // IMPORTATION
         async function uploadFiles(files) {
             if (!files || !files.length) return;
 
@@ -1290,8 +1452,9 @@
             const popupStatus = document.getElementById('upload-popup-status');
 
             popup.style.display = 'flex';
-            popupStatus.innerText = `Importation de ${files.length} fichier(s)...`;
+            popupStatus.innerHTML = `<i data-lucide="upload-cloud" size="16" color="#06b6d4"></i> Importation de ${files.length} fichier(s)...`;
             popupList.innerHTML = '';
+            lucide.createIcons();
 
             const uploadTasks = Array.from(files).map((file, idx) => {
                 const id = `upload-item-${idx}`;
@@ -1313,14 +1476,14 @@
             });
 
             await Promise.all(uploadTasks);
-            popupStatus.innerText = 'Importation terminée !';
+            popupStatus.innerHTML = `<i data-lucide="check-circle-2" size="16" color="#10b981"></i> Importation terminée !`;
+            lucide.createIcons();
             loadDriveContent();
             loadStorageInfo();
 
             setTimeout(() => { closeUploadPopup(); }, 4000);
         }
 
-        // Upload de dossier via input
         async function uploadFolderInputHandler(files) {
             if (!files || !files.length) return;
             showToast('Préparation de l\'importation du dossier...');
@@ -1448,7 +1611,7 @@
             document.getElementById('preview-container').innerHTML = '';
         }
 
-        // SHARE
+        // SHARE AVEC EXPIRATION TEMPORELLE
         function openShareModal(fileId) {
             selectedShareFileId = fileId;
             document.getElementById('share-modal').style.display = 'flex';
@@ -1461,6 +1624,7 @@
         document.getElementById('confirm-share-btn').onclick = async () => {
             if (!selectedShareFileId) return;
             const allowDownload = document.getElementById('allow-download-toggle').checked;
+            const expOption = document.getElementById('share-expiration-select').value;
 
             showToast('Autorisation en cours...');
             try {
@@ -1473,11 +1637,24 @@
                     body: JSON.stringify({ role: 'reader', type: 'anyone' })
                 });
 
-                const shareUrl = `${window.location.origin}${window.location.pathname}?fileId=${selectedShareFileId}&dl=${allowDownload ? '1' : '0'}`;
+                let expParam = '';
+                if (expOption !== 'never') {
+                    const expireTimestamp = Date.now() + (parseInt(expOption) * 1000);
+                    expParam = `&exp=${expireTimestamp}`;
+                }
 
-                navigator.clipboard.writeText(shareUrl);
+                const shareUrl = `${window.location.origin}${window.location.pathname}?fileId=${selectedShareFileId}&dl=${allowDownload ? '1' : '0'}${expParam}`;
+
+                // Copie presse-papier
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = shareUrl;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+
                 closeShareModal();
-                showToast('Lien copié dans le presse-papier !');
+                showToast('Lien partagé copié !');
             } catch (err) {
                 showToast('Erreur lors du partage');
             }
@@ -1517,11 +1694,11 @@
             });
         }
 
-        // FOLDER MODAL
+        // MODALE CRÉATION DOSSIER
         const folderModal = document.getElementById('folder-modal');
         const folderInput = document.getElementById('folder-name-input');
         
-        document.getElementById('new-folder-btn').onclick = () => {
+        document.getElementById('opt-new-folder').onclick = () => {
             folderInput.value = '';
             folderModal.style.display = 'flex';
             folderInput.focus();
@@ -1545,7 +1722,7 @@
             }
         };
 
-        // DELETE & DOWNLOAD
+        // DOWNLOAD & DELETE
         async function deleteFile(fileId) {
             if (!confirm('Voulez-vous vraiment supprimer cet élément ?')) return;
             try {
@@ -1553,7 +1730,7 @@
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
-                showToast('Supprimé');
+                showToast('Élément supprimé');
                 loadDriveContent();
                 loadStorageInfo();
             } catch (err) {
@@ -1606,13 +1783,11 @@
         }
 
         // SEARCH
-        document.getElementById('search-input').oninput = (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = allFiles.filter(f => f.name.toLowerCase().includes(query));
-            renderFiles(filtered);
+        document.getElementById('search-input').oninput = () => {
+            applyFilterAndRender();
         };
 
-        // FERMETURE MODALES SUR CLIC EXTÉRIEUR ET ÉCHAP
+        // MODALS OVERLAY CLOSING
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -1630,7 +1805,7 @@
             }
         });
 
-        // DRAG AND DROP (FICHIERS ET DOSSIERS)
+        // DRAG AND DROP RÉCURSIF
         const dropZone = document.getElementById('drop-zone');
         ['dragenter', 'dragover'].forEach(name => {
             window.addEventListener(name, (e) => e.preventDefault(), false);
@@ -1645,7 +1820,7 @@
             const items = e.dataTransfer.items;
             if (!items) return;
 
-            showToast('Analyse des fichiers et dossiers...');
+            showToast('Analyse des éléments déposés...');
 
             for (let i = 0; i < items.length; i++) {
                 const item = items[i].webkitGetAsEntry();
