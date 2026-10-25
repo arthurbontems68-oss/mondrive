@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudDrive - Stockage Personnel</title>
+    <title>CloudDrive - Stockage Personnel Modernisé</title>
 
     <!-- Lucide Icons & Google Fonts -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Google Identity Services Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -16,14 +18,16 @@
         :root {
             --bg-dark: #070913;
             --bg-sidebar: #0e1322;
-            --bg-card: rgba(22, 30, 49, 0.7);
-            --bg-card-hover: rgba(33, 45, 74, 0.9);
+            --bg-card: rgba(22, 30, 49, 0.6);
+            --bg-card-hover: rgba(33, 45, 74, 0.85);
             --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-            --accent-glow: rgba(59, 130, 246, 0.4);
+            --accent-glow: rgba(59, 130, 246, 0.35);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(59, 130, 246, 0.4);
             --danger: #ef4444;
+            --danger-hover: #dc2626;
             --glass-bg: rgba(14, 19, 34, 0.75);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
@@ -38,11 +42,30 @@
 
         body {
             background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
             color: var(--text-main);
             height: 100vh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+
+        /* --- SCROLLBAR CUSTOMISATION --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         /* --- LOGIN SCREEN --- */
@@ -59,32 +82,39 @@
 
         .login-card {
             background: rgba(14, 19, 34, 0.85);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 24px;
-            padding: 48px 40px;
+            border-radius: 28px;
+            padding: 52px 44px;
             max-width: 440px;
             width: 100%;
             text-align: center;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .login-logo {
-            width: 80px;
-            height: 80px;
+            width: 84px;
+            height: 84px;
             background: var(--accent-gradient);
-            border-radius: 22px;
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 28px;
-            box-shadow: 0 12px 30px var(--accent-glow);
+            box-shadow: 0 14px 32px var(--accent-glow);
         }
 
         .login-title {
-            font-size: 28px;
-            font-weight: 700;
+            font-size: 30px;
+            font-weight: 800;
             margin-bottom: 12px;
+            letter-spacing: -0.5px;
         }
 
         .login-subtitle {
@@ -108,24 +138,30 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px var(--accent-glow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px var(--accent-glow);
         }
 
         .btn-google-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 28px var(--accent-glow);
+            box-shadow: 0 14px 32px var(--accent-glow);
+            filter: brightness(1.08);
+        }
+
+        .btn-google-login:active {
+            transform: translateY(0);
         }
 
         /* --- HEADER --- */
         #app-header {
-            height: 72px;
+            height: 76px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 28px;
-            background: var(--bg-sidebar);
+            padding: 0 32px;
+            background: rgba(14, 19, 34, 0.7);
+            backdrop-filter: blur(12px);
             z-index: 10;
         }
 
@@ -135,7 +171,8 @@
             gap: 14px;
             font-size: 22px;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -154,7 +191,7 @@
         .search-container {
             position: relative;
             width: 100%;
-            max-width: 520px;
+            max-width: 500px;
         }
 
         .search-container i {
@@ -163,6 +200,8 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
+            pointer-events: none;
+            transition: color 0.2s;
         }
 
         .search-input {
@@ -170,7 +209,7 @@
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 12px 18px 12px 50px;
+            padding: 12px 18px 12px 48px;
             color: var(--text-main);
             font-size: 14px;
             outline: none;
@@ -179,27 +218,34 @@
 
         .search-input:focus {
             border-color: #3b82f6;
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .search-input:focus + i {
+            color: #60a5fa;
         }
 
         .btn-logout {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
             color: #f87171;
-            padding: 10px 16px;
-            border-radius: 10px;
+            padding: 10px 18px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
         .btn-logout:hover {
             background: var(--danger);
             color: white;
+            border-color: var(--danger);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
         }
 
         /* --- BODY & SIDEBAR --- */
@@ -216,7 +262,7 @@
             padding: 28px 20px;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 20px;
         }
 
         .btn-primary {
@@ -224,7 +270,7 @@
             color: white;
             border: none;
             padding: 14px 20px;
-            border-radius: 12px;
+            border-radius: 14px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
@@ -236,12 +282,18 @@
             transition: all 0.2s ease;
         }
 
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px var(--accent-glow);
+            filter: brightness(1.05);
+        }
+
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.04);
             color: var(--text-main);
             border: 1px solid var(--border-color);
             padding: 14px 20px;
-            border-radius: 12px;
+            border-radius: 14px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
@@ -250,6 +302,11 @@
             gap: 10px;
             font-size: 14px;
             transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .sidebar-menu {
@@ -266,18 +323,26 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
         }
 
         .sidebar-item.active {
             background: rgba(59, 130, 246, 0.12);
             color: #60a5fa;
             font-weight: 600;
+            border-left: 3px solid #3b82f6;
+            border-radius: 4px 12px 12px 4px;
         }
 
         .storage-widget {
             margin-top: auto;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 18px;
             padding: 20px;
             border: 1px solid var(--border-color);
         }
@@ -287,14 +352,14 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-weight: 700;
         }
 
         .storage-bar {
             height: 8px;
             background: rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
+            border-radius: 6px;
             overflow: hidden;
             margin-bottom: 10px;
         }
@@ -303,12 +368,14 @@
             height: 100%;
             width: 0%;
             background: var(--accent-gradient);
-            transition: width 0.5s ease;
+            transition: width 0.6s ease;
+            border-radius: 6px;
         }
 
         .storage-text {
             font-size: 12px;
             color: var(--text-muted);
+            font-weight: 500;
         }
 
         /* --- MAIN CONTENT --- */
@@ -323,71 +390,94 @@
         .breadcrumb {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 28px;
             font-size: 20px;
             font-weight: 700;
+            flex-wrap: wrap;
         }
 
         .breadcrumb-item {
             cursor: pointer;
             color: var(--text-muted);
+            transition: color 0.2s;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .breadcrumb-item.active {
             color: var(--text-main);
+            cursor: default;
+            background: transparent;
         }
 
         .drop-zone {
             flex: 1;
             border: 2px dashed rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+            border-radius: 24px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 40px;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
         .drop-zone.dragover {
             border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.08);
+            background: rgba(59, 130, 246, 0.06);
+            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.15);
         }
 
         .files-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
             gap: 22px;
             width: 100%;
+            align-content: start;
         }
 
         .file-card {
             background: var(--bg-card);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 22px;
             display: flex;
             flex-direction: column;
             gap: 14px;
-            transition: all 0.25s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
         }
 
         .file-card:hover {
-            border-color: rgba(59, 130, 246, 0.5);
-            transform: translateY(-3px);
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
             background: var(--bg-card-hover);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
         }
 
         .file-icon {
             width: 52px;
             height: 52px;
-            border-radius: 14px;
+            border-radius: 16px;
             background: rgba(59, 130, 246, 0.12);
             color: #60a5fa;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .file-card:hover .file-icon {
+            transform: scale(1.05);
         }
 
         .file-name {
@@ -396,6 +486,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--text-main);
         }
 
         .file-meta {
@@ -403,12 +494,15 @@
             color: var(--text-muted);
             display: flex;
             justify-content: space-between;
+            font-weight: 500;
         }
 
         .file-actions {
             display: flex;
             gap: 8px;
             margin-top: 4px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 12px;
         }
 
         .btn-icon {
@@ -429,6 +523,7 @@
             background: #3b82f6;
             color: white;
             border-color: #3b82f6;
+            transform: translateY(-1px);
         }
 
         .btn-icon.delete:hover {
@@ -437,22 +532,22 @@
             border-color: var(--danger);
         }
 
-        /* --- POPUP UPLOAD PROGRESSION EN BAS À DROITE --- */
+        /* --- POPUP UPLOAD PROGRESSION --- */
         #upload-progress-popup {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 360px;
-            background: var(--bg-sidebar);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(16px);
+            bottom: 28px;
+            right: 28px;
+            width: 380px;
+            background: rgba(14, 19, 34, 0.95);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
             z-index: 2500;
             overflow: hidden;
             display: none;
             flex-direction: column;
-            animation: slideUp 0.3s ease;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes slideUp {
@@ -461,7 +556,7 @@
         }
 
         .upload-popup-header {
-            padding: 14px 18px;
+            padding: 16px 20px;
             background: rgba(255, 255, 255, 0.03);
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -472,18 +567,18 @@
         }
 
         .upload-popup-list {
-            padding: 14px 18px;
-            max-height: 220px;
+            padding: 16px 20px;
+            max-height: 240px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
 
         .upload-item {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .upload-item-info {
@@ -496,14 +591,14 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 220px;
+            max-width: 240px;
             font-weight: 500;
         }
 
         .upload-bar-bg {
             height: 6px;
             background: rgba(255, 255, 255, 0.08);
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
         }
 
@@ -512,19 +607,21 @@
             width: 0%;
             background: var(--accent-gradient);
             transition: width 0.2s ease;
+            border-radius: 4px;
         }
 
         /* --- PREVIEW MODAL --- */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(3, 7, 18, 0.88);
+            background: rgba(3, 7, 18, 0.85);
             backdrop-filter: blur(16px);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
             padding: 30px;
+            animation: fadeIn 0.2s ease;
         }
 
         .preview-card {
@@ -532,7 +629,7 @@
             border: 1px solid var(--border-color);
             border-radius: 24px;
             width: 100%;
-            max-width: 950px;
+            max-width: 1000px;
             height: 85vh;
             display: flex;
             flex-direction: column;
@@ -546,6 +643,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .preview-body {
@@ -566,11 +664,13 @@
         /* --- MODALS --- */
         .modal-card {
             background: var(--bg-sidebar);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 28px;
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
             width: 100%;
             max-width: 440px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.2s ease;
         }
 
         .toggle-option {
@@ -579,7 +679,7 @@
             justify-content: space-between;
             background: rgba(255, 255, 255, 0.04);
             padding: 16px;
-            border-radius: 12px;
+            border-radius: 14px;
             margin: 20px 0;
             border: 1px solid var(--border-color);
         }
@@ -598,7 +698,7 @@
             cursor: pointer;
             inset: 0;
             background-color: rgba(255, 255, 255, 0.2);
-            transition: .4s;
+            transition: .3s;
             border-radius: 24px;
         }
 
@@ -610,7 +710,7 @@
             left: 3px;
             bottom: 3px;
             background-color: white;
-            transition: .4s;
+            transition: .3s;
             border-radius: 50%;
         }
 
@@ -622,7 +722,7 @@
             position: fixed;
             bottom: 30px;
             left: 30px;
-            background: rgba(16, 23, 42, 0.9);
+            background: rgba(14, 19, 34, 0.95);
             border: 1px solid #3b82f6;
             color: white;
             padding: 14px 24px;
@@ -631,15 +731,18 @@
             align-items: center;
             gap: 12px;
             z-index: 3000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
         }
 
         .spinner {
             border: 3px solid rgba(255, 255, 255, 0.1);
             border-top: 3px solid #3b82f6;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            animation: spin 1s linear infinite;
+            width: 32px;
+            height: 32px;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -672,8 +775,8 @@
         </div>
 
         <div class="search-container">
-            <i data-lucide="search" size="18"></i>
             <input type="text" class="search-input" id="search-input" placeholder="Rechercher un fichier...">
+            <i data-lucide="search" size="18"></i>
         </div>
 
         <button class="btn-logout" id="logout-btn">
@@ -725,7 +828,7 @@
                 </div>
 
                 <div id="empty-state" style="display: none; text-align: center;">
-                    <i data-lucide="folder-open" size="72" color="#334155" style="margin-bottom: 18px;"></i>
+                    <i data-lucide="folder-open" size="72" color="#475569" style="margin-bottom: 18px;"></i>
                     <h3 style="font-size: 18px; margin-bottom: 8px;">Aucun fichier dans ce dossier</h3>
                     <p style="color: var(--text-muted); font-size: 14px;">Glissez des fichiers ici pour les importer</p>
                 </div>
@@ -764,7 +867,7 @@
     <div class="modal-overlay" id="share-modal">
         <div class="modal-card">
             <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Partager le fichier</h3>
-            <p style="color: var(--text-muted); font-size: 14px;">Toute personne avec le lien pourra visualiser ce fichier sur votre site.</p>
+            <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Toute personne avec le lien pourra visualiser ce fichier sur votre site.</p>
             
             <div class="toggle-option">
                 <span style="font-weight: 600; font-size: 14px;">Autoriser le téléchargement</span>
@@ -785,7 +888,7 @@
     <div class="modal-overlay" id="folder-modal">
         <div class="modal-card">
             <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 18px;">Nouveau dossier</h3>
-            <input type="text" id="folder-name-input" placeholder="Nom du dossier" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; color: white; outline: none; margin-bottom: 20px;">
+            <input type="text" id="folder-name-input" placeholder="Nom du dossier" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: 12px; color: white; outline: none; margin-bottom: 24px; font-size: 14px;">
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <button class="btn-secondary" id="cancel-folder-btn">Annuler</button>
                 <button class="btn-primary" id="confirm-folder-btn">Créer</button>
@@ -865,9 +968,10 @@
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
 
-                if (response.status === 401) {
+                if (response.status === 401 || response.status === 403) {
                     localStorage.removeItem('gdrive_token');
                     document.getElementById('login-screen').style.display = 'flex';
+                    showToast('Session expirée, veuillez vous reconnecter');
                     return;
                 }
 
@@ -911,7 +1015,7 @@
                         <span>${isFolder ? 'Dossier' : formatSize(file.size)}</span>
                     </div>
                     <div class="file-actions">
-                        ${!isFolder ? `<button class="btn-icon" title="Télécharger" onclick="event.stopPropagation(); downloadFile('${file.id}')"><i data-lucide="download" size="16"></i></button>` : ''}
+                        ${!isFolder ? `<button class="btn-icon" title="Télécharger" onclick="event.stopPropagation(); downloadFile('${file.id}', '${file.name.replace(/'/g, "\\'")}')"><i data-lucide="download" size="16"></i></button>` : ''}
                         <button class="btn-icon" title="Partager" onclick="event.stopPropagation(); openShareModal('${file.id}')"><i data-lucide="share-2" size="16"></i></button>
                         <button class="btn-icon delete" title="Supprimer" onclick="event.stopPropagation(); deleteFile('${file.id}')"><i data-lucide="trash-2" size="16"></i></button>
                     </div>
@@ -937,7 +1041,7 @@
         hiddenInput.onchange = (e) => uploadFiles(e.target.files);
 
         async function uploadFiles(files) {
-            if (!files.length) return;
+            if (!files || !files.length) return;
 
             const popup = document.getElementById('upload-progress-popup');
             const popupList = document.getElementById('upload-popup-list');
@@ -990,20 +1094,26 @@
                 xhr.upload.onprogress = (e) => {
                     if (e.lengthComputable) {
                         const percent = Math.round((e.loaded / e.total) * 100);
-                        document.getElementById(`${elementId}-bar`).style.width = `${percent}%`;
-                        document.getElementById(`${elementId}-percent`).innerText = `${percent}%`;
+                        const bar = document.getElementById(`${elementId}-bar`);
+                        const percentTxt = document.getElementById(`${elementId}-percent`);
+                        if (bar) bar.style.width = `${percent}%`;
+                        if (percentTxt) percentTxt.innerText = `${percent}%`;
                     }
                 };
 
                 xhr.onload = () => {
-                    document.getElementById(`${elementId}-percent`).innerText = 'Terminé';
-                    document.getElementById(`${elementId}-bar`).style.width = '100%';
+                    const percentTxt = document.getElementById(`${elementId}-percent`);
+                    const bar = document.getElementById(`${elementId}-bar`);
+                    if (percentTxt) percentTxt.innerText = 'Terminé';
+                    if (bar) bar.style.width = '100%';
                     resolve();
                 };
 
                 xhr.onerror = () => {
-                    document.getElementById(`${elementId}-percent`).innerText = 'Erreur';
-                    document.getElementById(`${elementId}-bar`).style.background = 'var(--danger)';
+                    const percentTxt = document.getElementById(`${elementId}-percent`);
+                    const bar = document.getElementById(`${elementId}-bar`);
+                    if (percentTxt) percentTxt.innerText = 'Erreur';
+                    if (bar) bar.style.background = 'var(--danger)';
                     resolve();
                 };
 
@@ -1025,7 +1135,7 @@
 
             if (canDownload) {
                 dlBtn.style.display = 'flex';
-                dlBtn.onclick = () => window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+                dlBtn.onclick = () => downloadFile(fileId, fileName);
             } else {
                 dlBtn.style.display = 'none';
             }
@@ -1071,7 +1181,7 @@
 
                 navigator.clipboard.writeText(shareUrl);
                 closeShareModal();
-                showToast('Lien mgdrive.kdns.fr copié !');
+                showToast('Lien copié dans le presse-papier !');
             } catch (err) {
                 showToast('Erreur lors du partage');
             }
@@ -1105,6 +1215,7 @@
                     const sep = document.createElement('span');
                     sep.innerText = ' / ';
                     sep.style.color = 'var(--text-muted)';
+                    sep.style.margin = '0 2px';
                     container.appendChild(sep);
                 }
             });
@@ -1112,15 +1223,23 @@
 
         // FOLDER MODAL
         const folderModal = document.getElementById('folder-modal');
-        document.getElementById('new-folder-btn').onclick = () => folderModal.style.display = 'flex';
-        document.getElementById('cancel-folder-btn').onclick = () => folderModal.style.display = 'none';
+        const folderInput = document.getElementById('folder-name-input');
+        
+        document.getElementById('new-folder-btn').onclick = () => {
+            folderInput.value = '';
+            folderModal.style.display = 'flex';
+            folderInput.focus();
+        };
+
+        const closeFolderModal = () => folderModal.style.display = 'none';
+        document.getElementById('cancel-folder-btn').onclick = closeFolderModal;
 
         document.getElementById('confirm-folder-btn').onclick = async () => {
-            const name = document.getElementById('folder-name-input').value.trim();
+            const name = folderInput.value.trim();
             if (!name) return;
 
-            folderModal.style.display = 'none';
-            showToast('Création...');
+            closeFolderModal();
+            showToast('Création du dossier...');
             try {
                 await fetch('https://www.googleapis.com/drive/v3/files', {
                     method: 'POST',
@@ -1141,7 +1260,7 @@
             }
         };
 
-        // DELETE & DOWNLOAD
+        // DELETE & DOWNLOAD FIX
         async function deleteFile(fileId) {
             if (!confirm('Voulez-vous vraiment supprimer cet élément ?')) return;
             try {
@@ -1157,8 +1276,29 @@
             }
         }
 
-        function downloadFile(fileId) {
-            window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+        async function downloadFile(fileId, fileName = 'download') {
+            showToast('Téléchargement en cours...');
+            try {
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (!res.ok) throw new Error('Erreur réseau');
+                
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                showToast('Téléchargement terminé !');
+            } catch (err) {
+                // Fallback direct
+                window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+            }
         }
 
         // STORAGE QUOTA
@@ -1188,11 +1328,37 @@
             renderFiles(filtered);
         };
 
+        // FERMETURE MODALES SUR CLIC EXTÉRIEUR ET ÉCHAP
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    if (modal.id === 'preview-modal') closePreview();
+                }
+            });
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePreview();
+                closeShareModal();
+                closeFolderModal();
+            }
+        });
+
         // DRAG AND DROP
         const dropZone = document.getElementById('drop-zone');
-        ['dragenter', 'dragover'].forEach(name => dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }));
-        ['dragleave', 'drop'].forEach(name => dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
-        dropZone.addEventListener('drop', (e) => uploadFiles(e.dataTransfer.files));
+        ['dragenter', 'dragover'].forEach(name => {
+            window.addEventListener(name, (e) => e.preventDefault(), false);
+            dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }, false);
+        });
+        ['dragleave', 'drop'].forEach(name => {
+            window.addEventListener(name, (e) => e.preventDefault(), false);
+            dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }, false);
+        });
+        dropZone.addEventListener('drop', (e) => {
+            uploadFiles(e.dataTransfer.files);
+        });
 
         // UTILS
         function showLoading(show) {
@@ -1207,7 +1373,7 @@
             const toast = document.getElementById('toast');
             document.getElementById('toast-message').innerText = msg;
             toast.style.display = 'flex';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            setTimeout(() => { toast.style.display = 'none'; }, 3500);
         }
 
         function formatSize(bytes) {
@@ -1219,6 +1385,7 @@
         }
 
         function getFileIcon(mimeType) {
+            if (!mimeType) return 'file';
             if (mimeType.includes('image')) return 'image';
             if (mimeType.includes('video')) return 'video';
             if (mimeType.includes('audio')) return 'music';
