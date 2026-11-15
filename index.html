@@ -1637,13 +1637,23 @@
                     body: JSON.stringify({ role: 'reader', type: 'anyone' })
                 });
 
+                const fileMetaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${selectedShareFileId}?fields=webContentLink,mimeType`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const fileMeta = await fileMetaRes.json();
+
                 let expParam = '';
                 if (expOption !== 'never') {
                     const expireTimestamp = Date.now() + (parseInt(expOption) * 1000);
                     expParam = `&exp=${expireTimestamp}`;
                 }
 
-                const shareUrl = `${window.location.origin}${window.location.pathname}?fileId=${selectedShareFileId}&dl=${allowDownload ? '1' : '0'}${expParam}`;
+                let dlLinkParam = '';
+                if (fileMeta.webContentLink) {
+                    dlLinkParam = `&dlUrl=${encodeURIComponent(fileMeta.webContentLink)}`;
+                }
+
+                const shareUrl = `${window.location.origin}${window.location.pathname}?fileId=${selectedShareFileId}&dl=${allowDownload ? '1' : '0'}${expParam}${dlLinkParam}`;
 
                 // Copie presse-papier
                 const dummy = document.createElement('input');
@@ -1741,6 +1751,17 @@
         async function downloadFile(fileId, fileName = 'download') {
             showToast('Téléchargement en cours...');
             try {
+                if (!accessToken) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const directUrl = urlParams.get('dlUrl');
+                    if (directUrl) {
+                        window.location.href = directUrl;
+                        return;
+                    }
+                    window.open(`https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`, '_blank');
+                    return;
+                }
+
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
@@ -1758,7 +1779,7 @@
                 a.remove();
                 showToast('Téléchargement terminé !');
             } catch (err) {
-                window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+                window.open(`https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`, '_blank');
             }
         }
 
